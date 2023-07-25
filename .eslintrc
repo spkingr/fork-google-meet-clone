@@ -1,0 +1,7 @@
+{
+  "extends": "@antfu",
+  "rules": {
+    // your rules
+    "@typescript-eslint/ban-ts-comment": "off"
+  }
+}
