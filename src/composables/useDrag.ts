@@ -6,6 +6,18 @@ export interface UseDragResult {
   coordinate: { x: number; y: number }
 }
 
+function getComputedStyle(dom: HTMLElement) {
+  const element = dom
+  const computedStyle = window.getComputedStyle(element)
+  const transformValue = computedStyle.transform
+  // 提取偏移值
+  // 只关注 translateX 和 translateY 值
+  const translateX = Number.parseFloat(transformValue.split(',')[4])
+  const translateY = Number.parseFloat(transformValue.split(',')[5])
+
+  return [translateX, translateY]
+}
+
 export function useDrag(
   /* dom ref */
   domRef: Ref<any>,
@@ -29,8 +41,9 @@ export function useDrag(
         const { left, top } = domRef.value.getBoundingClientRect()
         const { left: parentLeft, top: parentTop } = parentRef!.value.getBoundingClientRect()
         // 这里用户如果用了transform，那么就会出现问题，因为getBoundingClientRect获取的是元素在视口中的位置，而不是在文档中的位置
-        domRef.value.style.left = `${left - parentLeft}px`
-        domRef.value.style.top = `${top - parentTop}px`
+        const [tx, ty] = getComputedStyle(domRef.value)
+        domRef.value.style.left = `${left - parentLeft - tx}px`
+        domRef.value.style.top = `${top - parentTop - ty}px`
 
         !watchLonger && unwatch()
       }
