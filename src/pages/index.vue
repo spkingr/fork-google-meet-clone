@@ -84,7 +84,7 @@ function copyLink(link: string) {
     <!-- dialog -->
     <Dialog
       :visible="linkVisible" title="以下是会议链接: "
-      :width="360" :height="240" :drag="true" :style="{ top: 'calc(100%-120px)', left: 'calc(100%-180px)' }"
+      :width="360" :height="240" :drag="true"
       @update:visible="linkVisible = false"
     >
       <div p-2 mt-2>

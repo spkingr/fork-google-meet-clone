@@ -1,12 +1,19 @@
 import type { Ref } from 'vue'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
 export interface UseDragResult {
   dragFlag: Ref<boolean>
   coordinate: { x: number; y: number }
 }
 
-export function useDrag(domRef: Ref<any>, parentRef?: Ref<any>): UseDragResult {
+export function useDrag(
+  /* dom ref */
+  domRef: Ref<any>,
+  /* 父元素 dom 是指定位上的父级 */
+  parentRef?: Ref<any> | null,
+  /* watch 是否长时间执行 如果不是使用在dialog等会弹出消失的元素上 使用默认值false就行 */
+  watchLonger?: Boolean,
+): UseDragResult {
   const dragFlag = ref(false)
   const dragStart = { x: 0, y: 0 }
 
@@ -25,7 +32,7 @@ export function useDrag(domRef: Ref<any>, parentRef?: Ref<any>): UseDragResult {
         domRef.value.style.left = `${left - parentLeft}px`
         domRef.value.style.top = `${top - parentTop}px`
 
-        unwatch()
+        !watchLonger && unwatch()
       }
     },
     { immediate: true },

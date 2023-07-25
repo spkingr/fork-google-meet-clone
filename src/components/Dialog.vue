@@ -7,7 +7,7 @@ const props = defineProps(dialogProps)
 const emits = defineEmits(dialogEmits)
 
 const dialog = ref<HTMLElement | null>(null)
-props.drag && useDrag(dialog)
+props.drag && useDrag(dialog, null, true)
 </script>
 
 <template>
