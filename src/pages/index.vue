@@ -11,6 +11,7 @@ const createOptions = [
 ]
 
 // invite link
+// vueuse useClipboard useToggle onClickOutside => see: https://vueuse.org/
 const [show, toggle] = useToggle(false)
 const linkVisible = ref(false)
 const link = ref('seemr.netlify.app/Rfy-oui-cdd')
@@ -22,6 +23,10 @@ function copyLink(link: string) {
   copy(link)
   useMessage.success({ content: '复制成功' })
 }
+
+// options
+const options = ref<HTMLElement | null>(null)
+onClickOutside(options, () => toggle(false))
 </script>
 
 <template>
@@ -40,7 +45,7 @@ function copyLink(link: string) {
               <div i-simple-icons:googlemeet mr-3 />
               <span>CREATE NEW</span>
             </button>
-            <div v-if="show" w="260px" border="1px solid gray-300" absolute mt-4 rounded-1 p="y-2 x-4">
+            <div v-if="show" ref="options" w="260px" border="1px solid gray-300" absolute mt-4 rounded-1 p="y-2 x-4">
               <div
                 v-for="(option, index) of createOptions" :key="index"
                 flex p-4 transition-300
@@ -83,7 +88,8 @@ function copyLink(link: string) {
 
     <!-- dialog -->
     <Dialog
-      :visible="linkVisible" title="以下是会议链接: "
+      :visible="linkVisible"
+      title="以下是会议链接: "
       :width="360" :height="240" :drag="true"
       @update:visible="linkVisible = false"
     >
