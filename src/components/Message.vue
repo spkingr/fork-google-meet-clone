@@ -14,6 +14,7 @@ function onClose() {
   <div
     v-if="showMessage"
     class="slide-in bg-white"
+    m="x-3 y-3"
     min-w="240px"
     shadow="md"
     top="30px" left="50%"

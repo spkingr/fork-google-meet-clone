@@ -1,7 +1,6 @@
 <script setup lang='ts'>
 import HomeLayout from '~/layouts/home.vue'
 import meetSvg from '~/assets/meet.svg'
-import '~/plugins/socket'
 import { useMessage } from '~/composables/useMessage'
 
 const code = ref('')
