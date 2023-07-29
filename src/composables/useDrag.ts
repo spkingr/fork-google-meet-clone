@@ -88,6 +88,10 @@ export function useDrag(
     document.removeEventListener('mouseup', mouseupHanlder)
   }
 
+  onScopeDispose(() => {
+    unwatch()
+  })
+
   return {
     dragFlag,
     coordinate: dragStart,

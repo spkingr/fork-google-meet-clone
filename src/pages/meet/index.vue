@@ -47,7 +47,7 @@ function showSide(type: 'member' | 'chat') {
       <div
         overflow-hidden
         w-0 bg-orange rounded-2 transition-all-500
-        :class="{ 'w-300px': currentSide }"
+        :class="{ 'w-360px': currentSide }"
       >
         <Chat v-if="currentSide === 'chat'" />
         <Member v-if="currentSide === 'member'" />

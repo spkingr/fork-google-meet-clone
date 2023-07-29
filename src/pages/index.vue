@@ -1,31 +1,49 @@
 <script setup lang='ts'>
 import HomeLayout from '~/layouts/home.vue'
 import meetSvg from '~/assets/meet.svg'
-import { useMessage } from '~/composables/useMessage'
+import { useLoading, useMessage } from '~/composables'
+
+const router = useRouter()
 
 const code = ref('')
 const createOptions = [
   { icon: 'i-ic:twotone-insert-link', text: '创建稍后使用的会议', handler: showLink },
-  { icon: 'i-ic:sharp-plus', text: '创建即时会议', handler: showLink },
+  { icon: 'i-ic:sharp-plus', text: '创建即时会议', handler: createMeet },
 ]
 
-// invite link
+// invite link-----------------------------------------------------------
 // vueuse useClipboard useToggle onClickOutside => see: https://vueuse.org/
+const loadingRef = ref<HTMLElement>()
 const [show, toggle] = useToggle(false)
 const linkVisible = ref(false)
 const link = ref('seemr.netlify.app/Rfy-oui-cdd')
 const { copy } = useClipboard()
-function showLink() {
+async function showLink() {
   linkVisible.value = true
 }
 function copyLink(link: string) {
   copy(link)
   useMessage.success({ content: '复制成功' })
 }
+// -------------------------------------------------------------------
 
-// options
-const options = ref<HTMLElement | null>(null)
-onClickOutside(options, () => toggle(false))
+// create meet--------------------------------------------------------
+async function createMeet() {
+  const { open: openLoading, close: closeLoading } = useLoading()
+  openLoading()
+  await new Promise((resolve) => {
+    setTimeout(() => {
+      closeLoading()
+      resolve(true)
+    }, 2000)
+  })
+  router.push('/preview')
+}
+// -------------------------------------------------------------------
+
+// options-----------------------------------------------------------
+const optionsRef = ref<HTMLElement | null>(null)
+onClickOutside(optionsRef, () => toggle(false))
 </script>
 
 <template>
@@ -44,7 +62,7 @@ onClickOutside(options, () => toggle(false))
               <div i-simple-icons:googlemeet mr-3 />
               <span>CREATE NEW</span>
             </button>
-            <div v-if="show" ref="options" w="260px" border="1px solid gray-300" absolute mt-4 rounded-1 p="y-2 x-4">
+            <div v-if="show" ref="optionsRef" w="260px" border="1px solid gray-300" absolute mt-4 rounded-1 p="y-2 x-4">
               <div
                 v-for="(option, index) of createOptions" :key="index"
                 flex p-4 transition-300
@@ -96,7 +114,7 @@ onClickOutside(options, () => toggle(false))
         <div color="[rgb(95,99,104)]" text-sm>
           复制此链接，然后发送给会议邀请对象。请务必妥善保存链接，以便日后使用。
         </div>
-        <div p="x-2 y-4" m="y-5" flex items-center justify-between rounded-1 bg-gray-200>
+        <div ref="loadingRef" p="x-2 y-4" m="y-5" flex items-center justify-between rounded-1 bg-gray-200>
           <div> {{ link }} </div>
           <div
             i-material-symbols:content-copy-outline

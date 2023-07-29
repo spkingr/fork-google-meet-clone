@@ -33,13 +33,14 @@ hover:bg-gray-200 cursor-pointer
 // 处理toggle --------------------------------------------------
 const [showVoice, toggleVoice] = useToggle(props.audio)
 const [showVideo, toggleVideo] = useToggle(props.video)
+// 这里乐观ui了，不等待结果直接改变状态
 function change(type: 'audio' | 'video') {
   if (type === 'audio') {
-    emits('change', { type: 'audio', status: !showVoice })
+    emits('change', { type: 'audio', status: !showVoice.value })
     toggleVoice()
   }
   if (type === 'video') {
-    emits('change', { type: 'video', status: !showVideo })
+    emits('change', { type: 'video', status: !showVideo.value })
     toggleVideo()
   }
 }
