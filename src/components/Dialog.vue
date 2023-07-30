@@ -34,7 +34,7 @@ props.drag && useDrag(dialog, null, true)
       rounded-1 p-1 shadow-md
       :style="{ width: `${props.width}px`, height: `${props.height}px` }"
     >
-      <header h="60px" flex items-center px-4>
+      <header h="60px" flex items-center px-2 text-gray-600>
         <slot name="header">
           {{ props.title }}
         </slot>

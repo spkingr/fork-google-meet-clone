@@ -113,8 +113,8 @@ onClickOutside(optionsRef, () => toggle(false))
       :width="360" :height="240" :drag="true"
       @update:visible="linkVisible = false"
     >
-      <div p-2 mt-2>
-        <div color="[rgb(95,99,104)]" text-sm>
+      <div p-2 mt-2 text-gray-500>
+        <div text-sm text-dark>
           复制此链接，然后发送给会议邀请对象。请务必妥善保存链接，以便日后使用。
         </div>
         <div ref="loadingRef" p="x-2 y-4" m="y-5" flex items-center justify-between rounded-1 bg-gray-200>
@@ -122,7 +122,7 @@ onClickOutside(optionsRef, () => toggle(false))
           <div
             i-material-symbols:content-copy-outline
             cursor-pointer text-xl
-            text-gray-400 hover:text-gray-600
+            text-gray-400 hover:text-gray-700
             is-tips="css" title="复制链接"
             @click="copyLink(link)"
           />
