@@ -1,9 +1,17 @@
 <script setup lang='ts'>
 import { onMounted } from 'vue'
+import { v4 as uuidv4 } from 'uuid'
 import Footer from './components/Footer.vue'
 import PreviewLayout from '~/layouts/preview.vue'
+import { useUserStore } from '~/store/useUser'
+
+const userStore = useUserStore()
 
 const router = useRouter()
+const route = useRoute()
+
+// 拿到主持人标识
+const isHost = route.query.host === '1'
 
 // input name & join
 const name = ref('')
@@ -13,7 +21,7 @@ const localVideo = ref<HTMLVideoElement>()
 const localStream = ref<MediaStream>()
 async function getUserMedia() {
   localStream.value = await getMediaStream()
-  localVideo.value.srcObject = localStream.value
+  localVideo.value!.srcObject = localStream.value
 }
 // 获取本地摄像头
 function getMediaStream() {
@@ -31,19 +39,37 @@ function getMediaStream() {
 const showVoice = ref(true)
 const showVideo = ref(true)
 function tracksChange(payload: { type: 'audio' | 'video'; status: boolean }) {
+  // 修改用户配置
+  userStore.modifyUserConfig({ [payload.type]: payload.status })
+
   if (payload.type === 'audio') {
     showVoice.value = payload.status
-    localStream.value.getAudioTracks()[0].enabled = payload.status
+    localStream.value!.getAudioTracks()[0].enabled = payload.status
     return
   }
   showVideo.value = payload.status
-  localStream.value.getVideoTracks()[0].enabled = payload.status
+  localStream.value!.getVideoTracks()[0].enabled = payload.status
 }
 // -------------------------------------------------------
 
-// join --------------------------------------------------
-function join() {
+// join & back --------------------------------------------------
+async function join() {
+  if (!name.value)
+    return
+  await setUser()
   router.push('/meet')
+}
+async function setUser() {
+  const user = {
+    __id__: uuidv4().substring(0, 6),
+    name: name.value,
+    isHost,
+  }
+  userStore.updateUser(user)
+}
+
+function back() {
+  router.back()
 }
 // ------------------------------------------------------
 onMounted(() => {
@@ -80,7 +106,9 @@ onMounted(() => {
         </h2>
         <div mb-8 class="underline-transition">
           <input
-            v-model="name" type="text" h="50px" w-full
+            v-model="name"
+            :max-length="20"
+            type="text" h="50px" w-full
             px-4 border-none outline-none
             focus:outline-none
             bg-gray-100
@@ -104,6 +132,7 @@ onMounted(() => {
             bg-gray-200 rounded-5
             shadow-md transition-400
             hover:bg-orange-500 hover:shadow-orange color-white
+            @click="back"
           >
             <div i-ic:sharp-arrow-back mr-4 />
             Home

@@ -5,6 +5,8 @@ import Chat from './components/Chat.vue'
 import Member from './components/Member.vue'
 import { defaultConfig } from './config'
 
+import './socket'
+
 // 配置 ---------------------------------------------------------
 const audio = ref(defaultConfig.audio)
 const video = ref(defaultConfig.video)

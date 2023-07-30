@@ -11,12 +11,12 @@ const createOptions = [
   { icon: 'i-ic:sharp-plus', text: '创建即时会议', handler: createMeet },
 ]
 
-// invite link-----------------------------------------------------------
+// TODO: invite link-----------------------------------------------------------
 // vueuse useClipboard useToggle onClickOutside => see: https://vueuse.org/
 const loadingRef = ref<HTMLElement>()
 const [show, toggle] = useToggle(false)
 const linkVisible = ref(false)
-const link = ref('seemr.netlify.app/Rfy-oui-cdd')
+const link = ref('seemr.netlify.app/TODO')
 const { copy } = useClipboard()
 async function showLink() {
   linkVisible.value = true
@@ -37,7 +37,8 @@ async function createMeet() {
       resolve(true)
     }, 2000)
   })
-  router.push('/preview')
+  // 携带一个主持人标识
+  router.push('/preview?host=1')
 }
 // -------------------------------------------------------------------
 

@@ -13,12 +13,12 @@
   },
   "dependencies": {
     "@iconify/json": "^2.2.93",
-    "@notui/components": "^1.0.0",
     "@types/uuid": "^9.0.2",
     "@vueuse/core": "^10.1.2",
     "dayjs": "^1.11.9",
     "lu2": "^2023.7.20",
     "pinia": "^2.1.4",
+    "pinia-plugin-persistedstate": "^3.2.0",
     "sass": "^1.64.1",
     "socket.io-client": "^4.7.1",
     "uuid": "^9.0.0",
@@ -47,6 +47,7 @@
     "unplugin-vue-macros": "^2.2.1",
     "vite": "^4.3.9",
     "vite-plugin-pages": "^0.31.0",
+    "vite-plugin-vue-devtools": "1.0.0-beta.6",
     "vitest": "^0.31.4",
     "vue-tsc": "^1.6.5"
   },
