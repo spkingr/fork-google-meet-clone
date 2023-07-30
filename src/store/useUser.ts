@@ -11,47 +11,53 @@ interface UserConfig {
   video: boolean
 }
 
-export const useUserStore = defineStore('user', () => {
+export const useUserStore = defineStore(
+  'user',
+  () => {
   // user 基本信息
-  const user = ref<User>({
-    name: '',
-    isHost: false,
-    __id__: '',
-  })
-  // user 自带配置
-  const userConfig = ref<UserConfig>({
-    audio: true,
-    video: true,
-  })
+    const user = ref<User>({
+      name: '',
+      isHost: false,
+      __id__: '',
+    })
+    // user 自带配置
+    const userConfig = ref<UserConfig>({
+      audio: true,
+      video: true,
+    })
 
-  function updateUser(newUser: User) {
-    user.value = newUser
-  }
-
-  function modifyUser(modify: Partial<User>) {
-    user.value = {
-      ...user.value,
-      ...modify,
+    function updateUser(newUser: User) {
+      user.value = newUser
     }
-  }
 
-  function updateUserConfig(newUserConfig: UserConfig) {
-    userConfig.value = newUserConfig
-  }
-
-  function modifyUserConfig(modify: Partial<UserConfig>) {
-    userConfig.value = {
-      ...userConfig.value,
-      ...modify,
+    function modifyUser(modify: Partial<User>) {
+      user.value = {
+        ...user.value,
+        ...modify,
+      }
     }
-  }
 
-  return {
-    user,
-    userConfig,
-    modifyUser,
-    updateUser,
-    updateUserConfig,
-    modifyUserConfig,
-  }
-})
+    function updateUserConfig(newUserConfig: UserConfig) {
+      userConfig.value = newUserConfig
+    }
+
+    function modifyUserConfig(modify: Partial<UserConfig>) {
+      userConfig.value = {
+        ...userConfig.value,
+        ...modify,
+      }
+    }
+
+    return {
+      user,
+      userConfig,
+      modifyUser,
+      updateUser,
+      updateUserConfig,
+      modifyUserConfig,
+    }
+  },
+  {
+    persist: true,
+  },
+)

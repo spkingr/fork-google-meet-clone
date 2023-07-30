@@ -72,8 +72,17 @@ function back() {
   router.back()
 }
 // ------------------------------------------------------
+function free() {
+  // 释放流 & 关闭摄像头
+  localStream.value?.getTracks().forEach(track => track.stop())
+}
+
 onMounted(() => {
   getUserMedia()
+})
+
+onUnmounted(() => {
+  free()
 })
 </script>
 

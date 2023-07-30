@@ -2,20 +2,18 @@
 import 'lu2/theme/edge/css/common/ui/Tips.css'
 import dayjs from 'dayjs'
 
-interface Props {
-  audio: boolean
-  video: boolean
-  share: boolean
-}
-const props = withDefaults(
-  defineProps<Props>(),
-  { audio: true, video: true, share: false },
-)
+const props = defineProps<Props>()
+
 const emits = defineEmits<{
   (e: 'change', payload: { type: 'audio' | 'video'; status: boolean }): void
   (e: 'showSide', type: 'member' | 'chat'): void
 }>()
 
+interface Props {
+  audio: boolean
+  video: boolean
+  share: boolean
+}
 // time ---------------------------------------------------
 const getTime = () => dayjs().format('HH:mm:ss')
 const time = ref('')

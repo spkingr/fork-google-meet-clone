@@ -3,20 +3,27 @@ import Footer from './components/Footer.vue'
 import Room from './components/Room.vue'
 import Chat from './components/Chat.vue'
 import Member from './components/Member.vue'
-import { defaultConfig } from './config'
+import { useUserStore } from '~/store/useUser'
 
 import './socket'
 
+const { userConfig } = useUserStore()
+
 // 配置 ---------------------------------------------------------
-const audio = ref(defaultConfig.audio)
-const video = ref(defaultConfig.video)
-const share = ref(defaultConfig.share)
+const audio = ref(userConfig.audio)
+const video = ref(userConfig.video)
+const share = ref(false)
+const roomRef = ref<any>() // some Expose methods of Room component
 
 function statusChange(payload: { type: 'audio' | 'video'; status: boolean }) {
-  if (payload.type === 'audio')
-    audio.value = payload.status // todo
-  if (payload.type === 'video')
-    video.value = payload.status // todo
+  if (payload.type === 'audio') {
+    audio.value = payload.status
+    roomRef.value.toggleAudio()
+  }
+  if (payload.type === 'video') {
+    video.value = payload.status
+    roomRef.value.toggleVideo()
+  }
 }
 // -----------------------------------------------------------
 
@@ -43,7 +50,7 @@ function showSide(type: 'member' | 'chat') {
   <div w-full h="100vh" p-4 pb-0 flex flex-col>
     <div flex-1 flex>
       <div overflow-hidden flex-1 bg-gray-100 rounded-2 transition-all-500>
-        <Room />
+        <Room ref="roomRef" />
       </div>
       <div w-0 :class="{ 'w-5': currentSide }" />
       <div

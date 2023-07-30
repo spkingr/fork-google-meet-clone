@@ -20,20 +20,39 @@ function getMediaStream() {
   }
   return navigator.mediaDevices.getUserMedia(constraints)
 }
+
 function initLocalByConfig() {
   const { audio, video } = userStore.userConfig
   !audio && (localStream.value!.getAudioTracks()[0].enabled = false)
   !video && (localStream.value!.getVideoTracks()[0].enabled = false)
+}
+
+function toggleAudio() {
+  const audioTrack = localStream.value!.getAudioTracks()[0]
+  audioTrack.enabled = !audioTrack.enabled
+  userStore.modifyUserConfig({ audio: audioTrack.enabled })
+}
+
+function toggleVideo() {
+  const videoTrack = localStream.value!.getVideoTracks()[0]
+  videoTrack.enabled = !videoTrack.enabled
+  userStore.modifyUserConfig({ video: videoTrack.enabled })
 }
 // -----------------------------------------------------------
 
 onMounted(() => {
   getUserMedia()
 })
+
+defineExpose({
+  localVideo,
+  toggleAudio,
+  toggleVideo,
+})
 </script>
 
 <template>
   <div w-full h-full flex-center bg-gray-200>
-    <video ref="localVideo" autoplay muted playsinline h="100%" class="mirror" />
+    <video ref="localVideo" autoplay playsinline h="100%" class="mirror" />
   </div>
 </template>
