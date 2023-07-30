@@ -26,7 +26,8 @@ const timer = setInterval(() => (time.value = getTime()), 1000)
 const baseIconWithHover = `
 flex-center w-10 h-10 mx-3
 rounded-full transition-300
-hover:bg-gray-200 cursor-pointer 
+hover:bg-gray-200 hover:text-dark
+cursor-pointer 
 `
 // -------------------------------------------------------------
 
