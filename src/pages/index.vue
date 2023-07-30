@@ -71,7 +71,9 @@ onClickOutside(optionsRef, () => toggle(false))
                 @click="option.handler"
               >
                 <div :class="option.icon" mr-4 text-xl text-dark />
-                <div>{{ option.text }}</div>
+                <div text-gray-500>
+                  {{ option.text }}
+                </div>
               </div>
             </div>
           </div>

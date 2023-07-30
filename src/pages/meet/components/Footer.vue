@@ -89,7 +89,7 @@ onUnmounted(() => clearInterval(timer))
     </div>
 
     <!-- meeting extra  -->
-    <div h="80%" w-160px flex-center bg-gray-100 rounded-4>
+    <div h="80%" w-160px flex-center bg-gray-100 text-gray-500 rounded-4>
       <div :class="[baseIconWithHover]" class="ui-tips" title="member" @click="showSide('member')">
         <div text-xl i-ion:people-outline />
       </div>

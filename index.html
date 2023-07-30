@@ -13,13 +13,12 @@
     <div>Please enable JavaScript to use this application.</div>
   </noscript>
   <script>
-    // 暂时不做自动切换主题
-    // (function () {
-    //   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-    //   const setting = localStorage.getItem('color-schema') || 'auto'
-    //   if (setting === 'dark' || (prefersDark && setting !== 'light'))
-    //     document.documentElement.classList.toggle('dark', true)
-    // })()
+    (function () {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      const setting = localStorage.getItem('color-schema') || 'auto'
+      if (setting === 'dark' || (prefersDark && setting !== 'light'))
+        document.documentElement.classList.toggle('dark', true)
+    })()
   </script>
   <script type="module" src="/src/main.ts"></script>
 </body>

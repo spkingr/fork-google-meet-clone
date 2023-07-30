@@ -42,7 +42,7 @@ function showSide(type: 'member' | 'chat') {
 <template>
   <div w-full h="100vh" p-4 pb-0 flex flex-col>
     <div flex-1 flex>
-      <div overflow-hidden flex-1 bg-gray-200 rounded-2 transition-all-500>
+      <div overflow-hidden flex-1 bg-gray-100 rounded-2 transition-all-500>
         <Room />
       </div>
       <div w-0 :class="{ 'w-5': currentSide }" />

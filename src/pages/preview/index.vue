@@ -111,7 +111,7 @@ onMounted(() => {
             type="text" h="50px" w-full
             px-4 border-none outline-none
             focus:outline-none
-            bg-gray-100
+            bg-gray-100 text-dark
             b-b="1px solid #ddd"
             placeholder="Your Name"
           >
