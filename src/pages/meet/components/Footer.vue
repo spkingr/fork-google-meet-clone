@@ -58,7 +58,11 @@ onUnmounted(() => clearInterval(timer))
   <div h-full flex items-center>
     <!-- meeting info  -->
     <div h-full w="180px" text-sm flex items-center justify-between>
-      <div font-bold p="x-3 y-1" hover:bg-gray-200 transition-300 rounded-1 cursor-pointer>
+      <div
+        font-bold p="x-3 y-1"
+        hover="bg-gray-200 text-dark"
+        transition-300 rounded-1 cursor-pointer
+      >
         MEET_CODE
       </div>
       <div font-bold cursor-pointer class="ui-tips" :title="dayjs().format('YYYY-MM-DD HH:mm')">

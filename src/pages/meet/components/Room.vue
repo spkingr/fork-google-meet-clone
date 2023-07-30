@@ -53,6 +53,6 @@ defineExpose({
 
 <template>
   <div w-full h-full flex-center bg-gray-200>
-    <video ref="localVideo" autoplay playsinline h="100%" class="mirror" />
+    <video ref="localVideo" autoplay muted playsinline h="100%" class="mirror" />
   </div>
 </template>
