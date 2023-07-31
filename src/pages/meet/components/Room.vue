@@ -1,9 +1,9 @@
 <script setup lang='ts'>
-interface Config {
+interface Props {
   audio: boolean
   video: boolean
 }
-const props = defineProps<Config>()
+const props = defineProps<Props>()
 
 // 获取本地摄像头 ----------------------------------------------
 const localVideo = ref<HTMLVideoElement>()
