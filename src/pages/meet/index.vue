@@ -3,6 +3,7 @@ import Footer from './components/Footer.vue'
 import Room from './components/Room.vue'
 import Chat from './components/Chat.vue'
 import Member from './components/Member.vue'
+import Adsorb from '~/components/Adsorb.vue'
 import { useUserStore } from '~/store/useUser'
 
 import './socket'
@@ -64,6 +65,13 @@ function showSide(type: 'member' | 'chat') {
 
 <template>
   <div w-full h="100vh" p="15px" pb-0>
+    <Adsorb :x="100" :y="100">
+      <template #content>
+        <div w-full h-full bg-light text-center p-2 text-sm text-gray-500>
+          看情况这里展示点啥
+        </div>
+      </template>
+    </Adsorb>
     <div h="[calc(100vh-75px)]" flex>
       <div overflow-hidden flex-1 bg-gray-100 rounded-2 transition-all-500>
         <Room

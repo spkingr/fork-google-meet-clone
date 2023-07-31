@@ -9,6 +9,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    Adsorb: typeof import('./src/components/Adsorb.vue')['default']
     Dialog: typeof import('./src/components/Dialog.vue')['default']
     Message: typeof import('./src/components/Message.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
