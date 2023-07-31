@@ -8,35 +8,38 @@ import { useUserStore } from '~/store/useUser'
 import './socket'
 
 const userStore = useUserStore()
-const { userConfig } = userStore // 用户配置 用于初始化按钮状态
 
-// 配置 ---------------------------------------------------------
-const audio = ref(userConfig.audio)
-const video = ref(userConfig.video)
+// 按钮操作 ---------------------------------------------------------
 const share = ref(false) // 默认不共享
 const roomRef = ref<any>()
-
 type ButtonType = 'audio' | 'video' | 'share'
+const handlers = {
+  audio: () => toggleAudio(),
+  video: () => toggleVideo(),
+  share: (toggle: boolean) => toggleShare(toggle),
+}
 async function statusChange(payload: { type: ButtonType; status: boolean }) {
-  if (payload.type === 'audio') {
-    audio.value = payload.status
-    roomRef.value.toggleAudio()
-  }
-  if (payload.type === 'video') {
-    if (share.value) // 共享状态下不允许操作摄像头
-      return
-    video.value = payload.status
-    roomRef.value.toggleVideo()
-  }
-  if (payload.type === 'share') {
-    share.value = payload.status
-    const [err] = await roomRef.value.toggleShare(payload.status)
-    if (err)
-      share.value = false
-    else
-      share.value = payload.status
-  }
+  const err = await handlers[payload.type](payload.status)
+  if (err)
+    return console.warn(err)
   userStore.modifyUserConfig({ [payload.type]: payload.status })
+}
+
+function toggleAudio() {
+  roomRef.value.toggleAudio()
+}
+function toggleVideo() {
+  if (share.value) // 共享状态下不允许操作摄像头
+    return '[toggle error] not allow when sharing'
+  roomRef.value.toggleVideo()
+}
+async function toggleShare(toggle: boolean) {
+  share.value = toggle
+  const [err] = await roomRef.value.toggleShare(toggle)
+  if (err)
+    share.value = false
+  else
+    share.value = toggle
 }
 // -----------------------------------------------------------
 
@@ -81,7 +84,9 @@ function showSide(type: 'member' | 'chat') {
     </div>
     <div h="60px">
       <Footer
-        :audio="audio" :video="video" :share="share"
+        :video="userStore.userConfig.video"
+        :audio="userStore.userConfig.audio"
+        :share="share"
         @change="statusChange"
         @show-side="showSide"
       />
