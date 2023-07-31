@@ -42,7 +42,7 @@ async function createMeet() {
 }
 // -------------------------------------------------------------------
 
-// options-----------------------------------------------------------
+// options------------------------------------------------------------
 const optionsRef = ref<HTMLElement | null>(null)
 onClickOutside(optionsRef, () => toggle(false))
 </script>
