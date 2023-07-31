@@ -17,20 +17,24 @@ const share = ref(false) // 默认不共享
 const roomRef = ref<any>()
 
 type ButtonType = 'audio' | 'video' | 'share'
-function statusChange(payload: { type: ButtonType; status: boolean }) {
+async function statusChange(payload: { type: ButtonType; status: boolean }) {
   if (payload.type === 'audio') {
     audio.value = payload.status
     roomRef.value.toggleAudio()
   }
   if (payload.type === 'video') {
-    if (share.value) // 共享状态下不允许关闭摄像头
+    if (share.value) // 共享状态下不允许操作摄像头
       return
     video.value = payload.status
     roomRef.value.toggleVideo()
   }
   if (payload.type === 'share') {
     share.value = payload.status
-    roomRef.value.toggleShare(share.value)
+    const [err] = await roomRef.value.toggleShare(payload.status)
+    if (err)
+      share.value = false
+    else
+      share.value = payload.status
   }
   userStore.modifyUserConfig({ [payload.type]: payload.status })
 }

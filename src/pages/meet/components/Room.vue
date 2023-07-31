@@ -41,20 +41,28 @@ function toggleVideo() {
 }
 
 const isSharing = ref(false)
-function toggleShare(toggle: boolean) {
-  isSharing.value = toggle
+async function toggleShare(toggle: boolean) {
   // 获取屏幕共享
   if (toggle) {
-    return navigator.mediaDevices.getDisplayMedia(constraints)
-      .then((stream) => {
-        localVideo.value!.srcObject = stream
-        localStream.value!.getTracks().forEach(track => track.stop())
-        localStream.value = stream
-      })
+    let stream: MediaStream
+    try {
+      stream = await navigator.mediaDevices.getDisplayMedia(constraints)
+    }
+    catch (err) { // 用户拒绝
+      return [err]
+    }
+    localVideo.value!.srcObject = stream
+    localStream.value!.getTracks().forEach(track => track.stop())
+    localStream.value = stream
+    isSharing.value = toggle
+
+    return [null]
   }
   // 释放屏幕共享
   localStream.value!.getTracks().forEach(track => track.stop())
   getUserMedia()
+  isSharing.value = toggle
+  return [null]
 }
 // -----------------------------------------------------------
 
