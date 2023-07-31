@@ -45,10 +45,11 @@ function tracksChange(payload: { type: 'audio' | 'video'; status: boolean }) {
   if (payload.type === 'audio') {
     showVoice.value = payload.status
     localStream.value!.getAudioTracks()[0].enabled = payload.status
-    return
   }
-  showVideo.value = payload.status
-  localStream.value!.getVideoTracks()[0].enabled = payload.status
+  if (payload.type === 'video') {
+    showVideo.value = payload.status
+    localStream.value!.getVideoTracks()[0].enabled = payload.status
+  }
 }
 // -------------------------------------------------------
 

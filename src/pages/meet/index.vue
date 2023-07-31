@@ -8,13 +8,13 @@ import { useUserStore } from '~/store/useUser'
 import './socket'
 
 const userStore = useUserStore()
-const { userConfig } = userStore
+const { userConfig } = userStore // 用户配置 用于初始化按钮状态
 
 // 配置 ---------------------------------------------------------
 const audio = ref(userConfig.audio)
 const video = ref(userConfig.video)
-const share = ref(false)
-const roomRef = ref<any>() // some Expose methods of Room component
+const share = ref(false) // 默认不共享
+const roomRef = ref<any>()
 
 type ButtonType = 'audio' | 'video' | 'share'
 function statusChange(payload: { type: ButtonType; status: boolean }) {
@@ -23,6 +23,8 @@ function statusChange(payload: { type: ButtonType; status: boolean }) {
     roomRef.value.toggleAudio()
   }
   if (payload.type === 'video') {
+    if (share.value) // 共享状态下不允许关闭摄像头
+      return
     video.value = payload.status
     roomRef.value.toggleVideo()
   }
@@ -59,7 +61,8 @@ function showSide(type: 'member' | 'chat') {
       <div overflow-hidden flex-1 bg-gray-100 rounded-2 transition-all-500>
         <Room
           ref="roomRef"
-          :video="userConfig.video" :audio="userConfig.audio"
+          :video="userStore.userConfig.video"
+          :audio="userStore.userConfig.audio"
         />
       </div>
       <div w-0 :class="{ 'w-5': currentSide }" />
