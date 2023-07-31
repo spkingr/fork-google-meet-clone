@@ -5,9 +5,11 @@ import dayjs from 'dayjs'
 const props = defineProps<Props>()
 
 const emits = defineEmits<{
-  (e: 'change', payload: { type: 'audio' | 'video'; status: boolean }): void
+  (e: 'change', payload: { type: ButtonType; status: boolean }): void
   (e: 'showSide', type: 'member' | 'chat'): void
 }>()
+
+type ButtonType = 'audio' | 'video' | 'share'
 
 interface Props {
   audio: boolean
@@ -30,18 +32,8 @@ cursor-pointer
 // -------------------------------------------------------------
 
 // 处理toggle --------------------------------------------------
-const [showVoice, toggleVoice] = useToggle(props.audio)
-const [showVideo, toggleVideo] = useToggle(props.video)
-// 这里乐观ui了，不等待结果直接改变状态
-function change(type: 'audio' | 'video') {
-  if (type === 'audio') {
-    emits('change', { type: 'audio', status: !showVoice.value })
-    toggleVoice()
-  }
-  if (type === 'video') {
-    emits('change', { type: 'video', status: !showVideo.value })
-    toggleVideo()
-  }
+function change(type: ButtonType) {
+  emits('change', { type, status: !props[type] })
 }
 // ------------------------------------------------------------
 
@@ -73,14 +65,14 @@ onUnmounted(() => clearInterval(timer))
     <!-- meeting-control  -->
     <div flex-center flex-1>
       <div class="ui-tips" :class="[baseIconWithHover]" title="Audio" @click="change('audio')">
-        <div v-if="showVoice" text-2xl i-icon-park-outline:voice />
+        <div v-if="audio" text-2xl i-icon-park-outline:voice />
         <div v-else text-2xl bg-red-5 i-icon-park-outline:voice-off />
       </div>
       <div class="ui-tips" :class="[baseIconWithHover]" title="Video" @click="change('video')">
-        <div v-if="showVideo" text-2xl i-material-symbols:videocam />
+        <div v-if="video" text-2xl i-material-symbols:videocam />
         <div v-else text-2xl bg-red-5 i-material-symbols:videocam-off-rounded />
       </div>
-      <div class="ui-tips" :class="[baseIconWithHover, { 'bg-blue': share }]" title="Share">
+      <div class="ui-tips" :class="[baseIconWithHover, { 'bg-blue': share }]" title="Share" @click="change('share')">
         <div text-2xl i-material-symbols:screenshot-monitor-outline />
       </div>
       <div

@@ -7,7 +7,8 @@ import { useUserStore } from '~/store/useUser'
 
 import './socket'
 
-const { userConfig } = useUserStore()
+const userStore = useUserStore()
+const { userConfig } = userStore
 
 // 配置 ---------------------------------------------------------
 const audio = ref(userConfig.audio)
@@ -15,7 +16,8 @@ const video = ref(userConfig.video)
 const share = ref(false)
 const roomRef = ref<any>() // some Expose methods of Room component
 
-function statusChange(payload: { type: 'audio' | 'video'; status: boolean }) {
+type ButtonType = 'audio' | 'video' | 'share'
+function statusChange(payload: { type: ButtonType; status: boolean }) {
   if (payload.type === 'audio') {
     audio.value = payload.status
     roomRef.value.toggleAudio()
@@ -24,6 +26,11 @@ function statusChange(payload: { type: 'audio' | 'video'; status: boolean }) {
     video.value = payload.status
     roomRef.value.toggleVideo()
   }
+  if (payload.type === 'share') {
+    share.value = payload.status
+    roomRef.value.toggleShare(share.value)
+  }
+  userStore.modifyUserConfig({ [payload.type]: payload.status })
 }
 // -----------------------------------------------------------
 
@@ -47,10 +54,13 @@ function showSide(type: 'member' | 'chat') {
 </script>
 
 <template>
-  <div w-full h="100vh" p-4 pb-0 flex flex-col>
-    <div flex-1 flex>
+  <div w-full h="100vh" p="15px" pb-0>
+    <div h="[calc(100vh-75px)]" flex>
       <div overflow-hidden flex-1 bg-gray-100 rounded-2 transition-all-500>
-        <Room ref="roomRef" />
+        <Room
+          ref="roomRef"
+          :video="userConfig.video" :audio="userConfig.audio"
+        />
       </div>
       <div w-0 :class="{ 'w-5': currentSide }" />
       <div
