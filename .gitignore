@@ -7,7 +7,7 @@ dist-ssr
 node_modules
 .idea/
 *.log
-uml
+# uml
 
 # Local Netlify folder
 .netlify
