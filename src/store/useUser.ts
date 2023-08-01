@@ -15,7 +15,7 @@ interface UserConfig {
 export const useUserStore = defineStore(
   'user',
   () => {
-  // user 基本信息
+    // user 基本信息
     const user = ref<User>({
       name: '',
       isHost: false,
