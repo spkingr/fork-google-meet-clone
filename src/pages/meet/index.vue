@@ -8,6 +8,7 @@ import { useUserStore } from '~/store/useUser'
 
 import './socket'
 
+const router = useRouter()
 const userStore = useUserStore()
 
 // 按钮操作 ---------------------------------------------------------
@@ -61,6 +62,15 @@ function showSide(type: 'member' | 'chat') {
   currentSide.value = type
 }
 // -----------------------------------------------------------
+
+function hangup() {
+  // todo------------------------------------------------------
+  // roomRef todo
+  // rommRef 根据挂断用户来判断是否需要关闭房间 主持人挂断则关闭房间 其他人挂断则只关闭自己的流
+  // ----------------------------------------------------------
+  userStore.clearUser()
+  router.push('/')
+}
 </script>
 
 <template>
@@ -97,6 +107,7 @@ function showSide(type: 'member' | 'chat') {
         :share="share"
         @change="statusChange"
         @show-side="showSide"
+        @hangup="hangup"
       />
     </div>
   </div>

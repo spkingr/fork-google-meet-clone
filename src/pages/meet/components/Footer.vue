@@ -7,6 +7,7 @@ const props = defineProps<Props>()
 const emits = defineEmits<{
   (e: 'change', payload: { type: ButtonType; status: boolean }): void
   (e: 'showSide', type: 'member' | 'chat'): void
+  (e: 'hangup'): void
 }>()
 
 type ButtonType = 'audio' | 'video' | 'share'
@@ -42,6 +43,10 @@ function showSide(type: 'member' | 'chat') {
   emits('showSide', type)
 }
 // ----------------------------------------------------------
+
+function hangup() {
+  emits('hangup')
+}
 
 onUnmounted(() => clearInterval(timer))
 </script>
@@ -79,7 +84,7 @@ onUnmounted(() => clearInterval(timer))
         class="ui-tips" title="Hangup"
         :class="[baseIconWithHover]" w-15 bg-red-500 hover:bg-red-5
       >
-        <div text-2xl i-majesticons:phone-hangup color-white />
+        <div text-2xl i-majesticons:phone-hangup color-white @click="hangup" />
       </div>
     </div>
 

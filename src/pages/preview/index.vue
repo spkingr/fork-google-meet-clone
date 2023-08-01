@@ -9,10 +9,9 @@ import { createRoomApi } from '~/api/live'
 const userStore = useUserStore()
 
 const router = useRouter()
-const route = useRoute()
 
 // 拿到主持人标识
-const isHost = route.query.host === '1'
+const isHost = userStore.user.isHost
 
 // input name & join
 const name = ref('')
@@ -54,10 +53,21 @@ function tracksChange(payload: { type: 'audio' | 'video'; status: boolean }) {
 }
 // -------------------------------------------------------
 
-// join & back --------------------------------------------------
+// (join | create) & back --------------------------------------------------
+function askToJoin() {
+  if (!name.value) // 未输入名字
+    return useMessage.error({ content: '请输入名字' })
+
+  const hasRoom = !!userStore.user.roomID
+  if (hasRoom) // 已经在房间中
+    return join()
+  if (isHost && !hasRoom) // 无房间号 & 主持人 -> 创建房间
+    return create()
+}
 async function join() {
-  if (!name.value)
-    return
+  router.push('/meet')
+}
+async function create() {
   setUser() // 设置用户信息
   const { data } = await createRoom() // 创建房间
   userStore.modifyUser({ roomID: data.room_id }) // 设置用户房间号
@@ -89,8 +99,14 @@ function free() {
   localStream.value?.getTracks().forEach(track => track.stop())
 }
 
+function showUserinfo() {
+  if (userStore.user.roomID)
+    name.value = userStore.user.name
+}
+
 onMounted(() => {
   getUserMedia()
+  showUserinfo()
 })
 
 onUnmounted(() => {
@@ -147,7 +163,7 @@ onUnmounted(() => {
             bg-gray-200 color-gray-400 rounded-5
             shadow-md transition-400
             :class="{ 'hover:bg-blue-500 hover:shadow-blue color-white': name }"
-            @click="join"
+            @click="askToJoin"
           >
             Ask To Join
           </div>

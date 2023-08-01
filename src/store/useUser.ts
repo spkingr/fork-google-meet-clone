@@ -50,11 +50,26 @@ export const useUserStore = defineStore(
       }
     }
 
+    function clearUser() {
+      user.value = {
+        name: '',
+        isHost: false,
+        __id__: '',
+        roomID: '',
+      }
+
+      userConfig.value = {
+        audio: true,
+        video: true,
+      }
+    }
+
     return {
       user,
       userConfig,
       modifyUser,
       updateUser,
+      clearUser,
       updateUserConfig,
       modifyUserConfig,
     }

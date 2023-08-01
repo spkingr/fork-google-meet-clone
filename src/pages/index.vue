@@ -2,8 +2,10 @@
 import HomeLayout from '~/layouts/home.vue'
 import meetSvg from '~/assets/meet.svg'
 import { useLoading, useMessage } from '~/composables'
+import { useUserStore } from '~/store/useUser'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 const code = ref('')
 const createOptions = [
@@ -37,14 +39,26 @@ async function createMeet() {
       resolve(true)
     }, 2000)
   })
-  // 携带一个主持人标识
-  router.push('/preview?host=1')
+  // 设置一个主持人标识
+  userStore.modifyUser({ isHost: true })
+  // 跳转到预览页面
+  router.push('/preview')
 }
 // -------------------------------------------------------------------
 
 // options------------------------------------------------------------
 const optionsRef = ref<HTMLElement | null>(null)
 onClickOutside(optionsRef, () => toggle(false))
+
+// -------------------------------------------------------------------
+function jump() {
+  if (userStore.user.roomID)
+    router.push('/preview')
+}
+
+onMounted(() => {
+  jump()
+})
 </script>
 
 <template>
