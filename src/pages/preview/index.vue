@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import Footer from './components/Footer.vue'
 import PreviewLayout from '~/layouts/preview.vue'
 import { useUserStore } from '~/store/useUser'
+import { createRoomApi } from '~/api/live'
 
 const userStore = useUserStore()
 
@@ -22,6 +23,7 @@ const localStream = ref<MediaStream>()
 async function getUserMedia() {
   localStream.value = await getMediaStream()
   localVideo.value!.srcObject = localStream.value
+  initLocalByConfig() // 根据用户配置初始化本地流
 }
 // 获取本地摄像头
 function getMediaStream() {
@@ -34,22 +36,21 @@ function getMediaStream() {
   }
   return navigator.mediaDevices.getUserMedia(constraints)
 }
+function initLocalByConfig() {
+  const { audio, video } = userStore.userConfig
+  !audio && (localStream.value!.getAudioTracks()[0].enabled = false)
+  !video && (localStream.value!.getVideoTracks()[0].enabled = false)
+}
 
 // toggle-------------------------------------------------
-const showVoice = ref(true)
-const showVideo = ref(true)
 function tracksChange(payload: { type: 'audio' | 'video'; status: boolean }) {
   // 修改用户配置
   userStore.modifyUserConfig({ [payload.type]: payload.status })
-
-  if (payload.type === 'audio') {
-    showVoice.value = payload.status
+  // 修改流
+  if (payload.type === 'audio')
     localStream.value!.getAudioTracks()[0].enabled = payload.status
-  }
-  if (payload.type === 'video') {
-    showVideo.value = payload.status
+  if (payload.type === 'video')
     localStream.value!.getVideoTracks()[0].enabled = payload.status
-  }
 }
 // -------------------------------------------------------
 
@@ -57,16 +58,26 @@ function tracksChange(payload: { type: 'audio' | 'video'; status: boolean }) {
 async function join() {
   if (!name.value)
     return
-  await setUser()
+  setUser() // 设置用户信息
+  const { data } = await createRoom() // 创建房间
+  userStore.modifyUser({ roomID: data.room_id }) // 设置用户房间号
   router.push('/meet')
 }
-async function setUser() {
+function setUser() {
   const user = {
     __id__: uuidv4().substring(0, 6),
     name: name.value,
     isHost,
+    roomID: '',
   }
   userStore.updateUser(user)
+}
+async function createRoom() {
+  const res = await createRoomApi({
+    host_name: userStore.user.name,
+    host_id: userStore.user.__id__,
+  })
+  return res
 }
 
 function back() {
@@ -104,7 +115,11 @@ onUnmounted(() => {
           class="mirror"
         />
         <div absolute left-0 right-0 bottom-5 h-12>
-          <Footer :video="showVideo" :audio="showVoice" @change="tracksChange" />
+          <Footer
+            :video="userStore.userConfig.video"
+            :audio="userStore.userConfig.audio"
+            @change="tracksChange"
+          />
         </div>
       </div>
       <!-- span  -->

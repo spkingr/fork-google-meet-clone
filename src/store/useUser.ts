@@ -4,6 +4,7 @@ interface User {
   name: string
   isHost: boolean
   __id__: string
+  roomID: string
 }
 
 interface UserConfig {
@@ -19,6 +20,7 @@ export const useUserStore = defineStore(
       name: '',
       isHost: false,
       __id__: '',
+      roomID: '',
     })
     // user 自带配置
     const userConfig = ref<UserConfig>({

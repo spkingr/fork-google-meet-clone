@@ -19,7 +19,6 @@ hover:bg-gray-200 cursor-pointer
 // -------------------------------------------------------------
 
 // 处理toggle --------------------------------------------------
-// 这里乐观ui了，不等待结果直接改变状态
 function change(type: 'audio' | 'video') {
   emits('change', { type, status: !props[type] })
 }
