@@ -6,8 +6,6 @@ import Member from './components/Member.vue'
 import Adsorb from '~/components/Adsorb.vue'
 import { useUserStore } from '~/store/useUser'
 
-import './router' // 路由守卫
-
 import './socket'
 
 const router = useRouter()
@@ -73,6 +71,23 @@ function hangup() {
   userStore.clearUser()
   router.push('/')
 }
+
+// 判断用户是否有房间号 ----------------------------------------------
+const { open: openLoading, close: closeLoading } = useLoading()
+const hasCheckedRoomID = ref(false)
+function checkRoomID() {
+  const roomID = userStore.user.roomID
+  if (roomID)
+    return hasCheckedRoomID.value = true
+  openLoading()
+  setTimeout(() => {
+    closeLoading()
+    router.push('/')
+  }, 1000)
+}
+
+checkRoomID()
+// ------------------------------------------------------------------
 </script>
 
 <template>
@@ -87,6 +102,7 @@ function hangup() {
     <div h="[calc(100vh-75px)]" flex>
       <div overflow-hidden flex-1 bg-gray-100 rounded-2 transition-all-500>
         <Room
+          v-if="hasCheckedRoomID"
           ref="roomRef"
           :video="userStore.userConfig.video"
           :audio="userStore.userConfig.audio"
