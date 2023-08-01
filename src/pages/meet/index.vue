@@ -76,8 +76,7 @@ function hangup() {
 const { open: openLoading, close: closeLoading } = useLoading()
 const hasCheckedRoomID = ref(false)
 function checkRoomID() {
-  const roomID = userStore.user.roomID
-  if (roomID)
+  if (userStore.isInRoom())
     return hasCheckedRoomID.value = true
   openLoading()
   setTimeout(() => {

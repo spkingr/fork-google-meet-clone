@@ -64,6 +64,10 @@ export const useUserStore = defineStore(
       }
     }
 
+    function isInRoom() {
+      return user.value.roomID
+    }
+
     return {
       user,
       userConfig,
@@ -72,6 +76,7 @@ export const useUserStore = defineStore(
       clearUser,
       updateUserConfig,
       modifyUserConfig,
+      isInRoom,
     }
   },
   {

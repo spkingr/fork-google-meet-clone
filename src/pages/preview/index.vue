@@ -51,14 +51,14 @@ function tracksChange(payload: { type: 'audio' | 'video'; status: boolean }) {
   if (payload.type === 'video')
     localStream.value!.getVideoTracks()[0].enabled = payload.status
 }
-// -------------------------------------------------------
+// -----------------------------------------------------------------
 
-// (join | create) & back --------------------------------------------------
+// (join | create) --------------------------------------------------
 function askToJoin() {
   if (!name.value) // 未输入名字
     return useMessage.error({ content: '请输入名字' })
 
-  const hasRoom = !!userStore.user.roomID
+  const hasRoom = userStore.isInRoom()
   if (hasRoom) // 已经在房间中
     return join()
   if (isHost && !hasRoom) // 无房间号 & 主持人 -> 创建房间
@@ -89,18 +89,29 @@ async function createRoom() {
   })
   return res
 }
+// ------------------------------------------------------
 
+// back ------------------------------------------------------
+const tipVisible = ref(false)
 function back() {
+  if (userStore.isInRoom())
+    return tipVisible.value = true
   router.back()
 }
-// ------------------------------------------------------
+function sure() {
+  tipVisible.value = false
+  userStore.clearUser()
+  router.back()
+}
+// ---------------------------------------------------------
+
 function free() {
   // 释放流 & 关闭摄像头
   localStream.value?.getTracks().forEach(track => track.stop())
 }
 
 function showUserinfo() {
-  if (userStore.user.roomID)
+  if (userStore.isInRoom())
     name.value = userStore.user.name
 }
 
@@ -160,7 +171,7 @@ onUnmounted(() => {
         <div w-full flex mb-10>
           <div
             h-10 flex-1 flex-center cursor-pointer
-            bg-gray-200 color-gray-400 rounded-5
+            bg-gray-200 color-gray-600 rounded-5
             shadow-md transition-400
             :class="{ 'hover:bg-blue-500 hover:shadow-blue color-white': name }"
             @click="askToJoin"
@@ -184,5 +195,33 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+    <!-- dialog -->
+    <Dialog
+      :visible="tipVisible"
+      title="Leave the room"
+      :width="360" :height="240" :drag="true"
+      @update:visible="tipVisible = false"
+    >
+      <div h-full p="x-2 y-4" color-dark text-sm flex flex-col>
+        <h3 flex-1 flex-center bg-gray-200>
+          确定返回吗？返回时将同时退出会议
+        </h3>
+        <div h-2 />
+        <div h="40px" flex font-bold cursor-pointer>
+          <div
+            bg-blue-3 flex-1 flex-center hover:bg-blue-4 transition-300
+            @click="sure"
+          >
+            确定
+          </div>
+          <div
+            bg-orange-3 flex-1 flex-center hover:bg-orange-4 transition-300
+            @click="tipVisible = false"
+          >
+            取消
+          </div>
+        </div>
+      </div>
+    </Dialog>
   </PreviewLayout>
 </template>

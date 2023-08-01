@@ -52,7 +52,7 @@ onClickOutside(optionsRef, () => toggle(false))
 
 // -------------------------------------------------------------------
 function jump() {
-  if (userStore.user.roomID)
+  if (userStore.isInRoom())
     router.push('/preview')
 }
 
