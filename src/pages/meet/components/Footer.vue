@@ -1,14 +1,16 @@
 <script setup lang='ts'>
 import 'lu2/theme/edge/css/common/ui/Tips.css'
 import dayjs from 'dayjs'
+import { useUserStore } from '~/store/useUser'
 
 const props = defineProps<Props>()
-
 const emits = defineEmits<{
   (e: 'change', payload: { type: ButtonType; status: boolean }): void
   (e: 'showSide', type: 'member' | 'chat'): void
   (e: 'hangup'): void
 }>()
+
+const userStore = useUserStore()
 
 type ButtonType = 'audio' | 'video' | 'share'
 
@@ -44,6 +46,12 @@ function showSide(type: 'member' | 'chat') {
 }
 // ----------------------------------------------------------
 
+const { copy } = useClipboard()
+async function copyRoomID() {
+  await copy(userStore.user.roomID)
+  useMessage.success({ content: '复制成功' })
+}
+
 function hangup() {
   emits('hangup')
 }
@@ -59,8 +67,10 @@ onUnmounted(() => clearInterval(timer))
         font-bold p="x-3 y-1"
         hover="bg-gray-200 text-dark"
         transition-300 rounded-1 cursor-pointer
+        class="ui-tips" :title="userStore.user.roomID"
+        @click="copyRoomID"
       >
-        MEET_CODE
+        {{ userStore.user.roomID }}
       </div>
       <div font-bold cursor-pointer class="ui-tips" :title="dayjs().format('YYYY-MM-DD HH:mm')">
         {{ time }}

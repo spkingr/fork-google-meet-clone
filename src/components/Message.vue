@@ -18,7 +18,10 @@ function onClose() {
     min-w="240px"
     shadow="md"
     top="30px" left="50%"
-    absolute z-9999 flex items-center justify-between rounded-1 p-2 transition duration-400
+    absolute z-9999
+    flex items-center justify-between
+    rounded-1 p-2
+    transition duration-400
   >
     <!-- 消息类型图标，通过消息类型确定，text类型不配置图标 -->
     <div
@@ -33,7 +36,7 @@ function onClose() {
     />
 
     <!-- 消息文本 -->
-    <span text-sm v-text="props.content" />
+    <span text-sm text-dark v-text="props.content" />
 
     <!-- 手动关闭消息 -->
     <div

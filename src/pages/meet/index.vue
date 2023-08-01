@@ -6,6 +6,8 @@ import Member from './components/Member.vue'
 import Adsorb from '~/components/Adsorb.vue'
 import { useUserStore } from '~/store/useUser'
 
+import './router' // 路由守卫
+
 import './socket'
 
 const router = useRouter()
