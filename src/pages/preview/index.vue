@@ -59,6 +59,7 @@ function askToJoin() {
     return useMessage.error({ content: '请输入名字' })
 
   const hasRoom = userStore.isInRoom()
+  setUser() // 设置用户信息
   if (hasRoom) // 已经在房间中
     return join()
   if (isHost && !hasRoom) // 无房间号 & 主持人 -> 创建房间
@@ -68,7 +69,6 @@ async function join() {
   router.push('/meet')
 }
 async function create() {
-  setUser() // 设置用户信息
   const { data } = await createRoom() // 创建房间
   userStore.modifyUser({ roomID: data.room_id }) // 设置用户房间号
   router.push('/meet')
