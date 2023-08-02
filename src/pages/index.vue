@@ -3,22 +3,33 @@ import HomeLayout from '~/layouts/home.vue'
 import meetSvg from '~/assets/meet.svg'
 import { useLoading, useMessage } from '~/composables'
 import { useUserStore } from '~/store/useUser'
+import { queryRoomApi } from '~/api/live'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-const code = ref('')
 const createOptions = [
   { icon: 'i-ic:twotone-insert-link', text: '创建稍后使用的会议', handler: showLink },
   { icon: 'i-ic:sharp-plus', text: '创建即时会议', handler: createMeet },
 ]
+
+async function loading(time = 1000) {
+  const { open: openLoading, close: closeLoading } = useLoading()
+  openLoading()
+  await new Promise((resolve) => {
+    setTimeout(() => {
+      closeLoading()
+      resolve(true)
+    }, time)
+  })
+}
 
 // TODO: invite link-----------------------------------------------------------
 // vueuse useClipboard useToggle onClickOutside => see: https://vueuse.org/
 const loadingRef = ref<HTMLElement>()
 const [show, toggle] = useToggle(false)
 const linkVisible = ref(false)
-const link = ref('seemr.netlify.app/TODO')
+const link = ref('TODO: invite link')
 const { copy } = useClipboard()
 async function showLink() {
   linkVisible.value = true
@@ -31,17 +42,22 @@ function copyLink(link: string) {
 
 // create meet--------------------------------------------------------
 async function createMeet() {
-  const { open: openLoading, close: closeLoading } = useLoading()
-  openLoading()
-  await new Promise((resolve) => {
-    setTimeout(() => {
-      closeLoading()
-      resolve(true)
-    }, 2000)
-  })
+  await loading()
   // 设置一个主持人标识
   userStore.modifyUser({ isHost: true })
   // 跳转到预览页面
+  router.push('/preview')
+}
+// -------------------------------------------------------------------
+
+// join meet----------------------------------------------------------
+const code = ref('')
+async function join() {
+  const { data } = await queryRoomApi({ room_id: code.value })
+  if (!data)
+    return useMessage.error({ content: '会议不存在' })
+  userStore.modifyUser({ roomID: code.value })
+  loading()
   router.push('/preview')
 }
 // -------------------------------------------------------------------
@@ -108,6 +124,7 @@ onMounted(() => {
               'hover:bg-gray-200': !code,
               'cursor-cell': !code,
             }"
+            @click="join"
           >
             Join
           </div>
