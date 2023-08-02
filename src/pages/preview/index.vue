@@ -59,29 +59,30 @@ function askToJoin() {
     return useMessage.error({ content: '请输入名字' })
 
   const hasRoom = userStore.isInRoom()
-  setUser() // 设置用户信息
   if (hasRoom) // 已经在房间中
     return join()
   if (isHost && !hasRoom) // 无房间号 & 主持人 -> 创建房间
     return create()
 }
+
 async function join() {
+  userStore.modifyUser({
+    name: name.value,
+  })
   router.push('/meet')
 }
+
 async function create() {
-  const { data } = await createRoom() // 创建房间
-  userStore.modifyUser({ roomID: data.room_id }) // 设置用户房间号
-  router.push('/meet')
-}
-function setUser() {
-  const user = {
+  userStore.modifyUser({
     __id__: uuidv4().substring(0, 6),
     name: name.value,
     isHost,
-    roomID: '',
-  }
-  userStore.updateUser(user)
+  })
+  const { data } = await createRoom() // 创建房间
+  userStore.modifyUser({ roomID: data.room_id }) // 设置房间号
+  router.push('/meet')
 }
+
 async function createRoom() {
   const res = await createRoomApi({
     host_name: userStore.user.name,

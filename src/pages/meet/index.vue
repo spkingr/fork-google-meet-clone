@@ -3,13 +3,22 @@ import Footer from './components/Footer.vue'
 import Room from './components/Room.vue'
 import Chat from './components/Chat.vue'
 import Member from './components/Member.vue'
+import { CLIENT } from './socket'
 import Adsorb from '~/components/Adsorb.vue'
 import { useUserStore } from '~/store/useUser'
 
-import './socket'
-
 const router = useRouter()
 const userStore = useUserStore()
+
+// webrtc -----------------------------------------------------
+CLIENT.emit('MemberJoined', userStore.user)
+CLIENT.on('MemberLeft', handleMemberLeft)
+
+function handleMemberLeft(member: any) {
+  // console.log('handleMemberLeft', member)
+}
+
+// ------------------------------------------------------------
 
 // 按钮操作 ---------------------------------------------------------
 const share = ref(false) // 默认不共享
