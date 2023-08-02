@@ -1,31 +1,31 @@
 import { socket } from '~/plugins/socket'
 
-type Callback = (data: any) => void
-type Data = Record<string, any>
+export type Callback = (data: any) => void
+export type Data = Record<string, any>
 
-interface IOnHanlders {
+export interface IOnHanlders {
   MemberJoined: (callback: Callback) => void
   MemberLeft: (callback: Callback) => void
   MessageFromPeer: (callback: Callback) => void
 }
 
-interface IEmitHanlders {
+export interface IEmitHanlders {
   MemberJoined: (data: Data) => void
 }
 
-interface ICLIENT {
+export interface ICLIENT {
   id: string
   on: (event: keyof IOnHanlders, callback: Callback) => void
   emit: (event: keyof IEmitHanlders, data: Data) => void
 }
 
-const CLIENT: ICLIENT = {
+export const CLIENT: ICLIENT = {
   id: '',
   on: () => {},
   emit: () => {},
 }
 
-async function run() {
+export async function run() {
   return new Promise((resolve) => {
     socket.on('connect', () => {
       /* 客户端id */
@@ -90,5 +90,3 @@ async function run() {
 }
 
 await run()
-
-export { CLIENT }

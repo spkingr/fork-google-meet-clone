@@ -12,9 +12,9 @@ const userStore = useUserStore()
 
 // webrtc -----------------------------------------------------
 CLIENT.emit('MemberJoined', userStore.user)
-CLIENT.on('MemberLeft', handleMemberLeft)
+CLIENT.on('MemberJoined', handleMemberJoined)
 
-function handleMemberLeft(member: any) {
+function handleMemberJoined(member: any) {
   // console.log('handleMemberLeft', member)
 }
 
