@@ -1,14 +1,16 @@
 <template>
-  <main
-    font-sans
-    text="center gray-700 dark:gray-200"
-  >
-    <routerView v-slot="{ Component }">
-      <transition name="slide-fade">
-        <component :is="Component" />
-      </transition>
-    </routerView>
-  </main>
+  <Suspense>
+    <main
+      font-sans
+      text="center gray-700 dark:gray-200"
+    >
+      <routerView v-slot="{ Component }">
+        <transition name="slide-fade">
+          <component :is="Component" />
+        </transition>
+      </routerView>
+    </main>
+  </Suspense>
 </template>
 
 <style>

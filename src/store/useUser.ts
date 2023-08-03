@@ -80,6 +80,9 @@ export const useUserStore = defineStore(
     }
   },
   {
-    persist: true,
+    persist: {
+      // 保存到 localStorage
+      storage: window.sessionStorage,
+    },
   },
 )

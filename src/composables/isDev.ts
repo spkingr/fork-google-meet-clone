@@ -1,3 +1,3 @@
 export function isDev() {
-  return process.env.NODE_ENV === 'development'
+  return import.meta.env.NODE_ENV === 'development'
 }

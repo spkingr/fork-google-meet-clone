@@ -12,6 +12,7 @@ declare module '@vue/runtime-core' {
     Adsorb: typeof import('./src/components/Adsorb.vue')['default']
     Dialog: typeof import('./src/components/Dialog.vue')['default']
     Message: typeof import('./src/components/Message.vue')['default']
+    Moveable: typeof import('./src/components/Moveable.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TheCounter: typeof import('./src/components/TheCounter.vue')['default']

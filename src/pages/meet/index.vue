@@ -3,22 +3,52 @@ import Footer from './components/Footer.vue'
 import Room from './components/Room.vue'
 import Chat from './components/Chat.vue'
 import Member from './components/Member.vue'
-import { CLIENT } from './socket'
 import Adsorb from '~/components/Adsorb.vue'
 import { useUserStore } from '~/store/useUser'
+import { usePeerStore } from '~/store/usePeer'
+import type { Data } from '~/store/useSocket'
+import { useSocketStore } from '~/store/useSocket'
 
 const router = useRouter()
 const userStore = useUserStore()
+const peerStore = usePeerStore()
+const { CLIENT, run } = useSocketStore()
 
-// webrtc -----------------------------------------------------
-CLIENT.emit('MemberJoined', userStore.user)
-CLIENT.on('MemberJoined', handleMemberJoined)
+await run() // 连接socket
 
-function handleMemberJoined(member: any) {
-  // console.log('handleMemberLeft', member)
+// webrtc 逻辑-----------------------------------------------------
+const unwatch = watch(
+  () => peerStore.isReady,
+  (n) => {
+    if (!n)
+      return
+    CLIENT.emit('MemberJoined', { ...userStore.user, memberId: CLIENT.id })
+    CLIENT.on('MemberJoined', handleMemberJoined)
+    CLIENT.on('MessageFromPeer', hanldeMessageFromPeer)
+    CLIENT.join(userStore.user)
+  },
+  { immediate: true },
+)
+
+// 监听到自己之外的用户加入
+function handleMemberJoined() {
+  // message 变量是由 peerStore.createOffer() 传入的   含有 offer 信息
+  function sendMessage(message: Data) {
+    CLIENT.emit('MessageToPeer', { ...message })
+  }
+  peerStore.createOffer(sendMessage) // 创建offer 并 发送给对端用户
 }
-
-// ------------------------------------------------------------
+// 监听到对端的用户发送消息
+function hanldeMessageFromPeer(data: Data) {
+  if (data.type === 'offer') {
+    const offer = data.offer
+    function sendMessage(message: Data) {
+      CLIENT.emit('MessageToPeer', { ...message, memberId: data.memberId })
+    }
+    return peerStore.createAnswer(sendMessage, offer) // 创建answer 并 发送给对端用户
+  }
+}
+// -------------------------------------------------------------
 
 // 按钮操作 ---------------------------------------------------------
 const share = ref(false) // 默认不共享
@@ -93,9 +123,12 @@ function checkRoomID() {
     router.push('/')
   }, 1000)
 }
-
 checkRoomID()
 // ------------------------------------------------------------------
+
+onUnmounted(() => {
+  unwatch()
+})
 </script>
 
 <template>
@@ -103,7 +136,7 @@ checkRoomID()
     <Adsorb :x="100" :y="100">
       <template #content>
         <div w-full h-full bg-light text-center p-2 text-sm text-gray-500>
-          看情况这里展示点啥
+          现在只做了p2p流程
         </div>
       </template>
     </Adsorb>
