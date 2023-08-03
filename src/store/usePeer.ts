@@ -40,6 +40,7 @@ export const usePeerStore = defineStore(
     }
 
     async function getUserMedia(localVideo: HTMLVideoElement, callback: () => void) {
+      // fixme: 这里有可能会得到一个空的流
       localStream.value = await getMediaStream()
       localVideo.srcObject = localStream.value
       callback() // 根据用户配置初始化本地流
@@ -78,16 +79,22 @@ export const usePeerStore = defineStore(
 
       // 监听本地 peer 的 track 事件 => 监听远端流的到来
       localPeer.value.ontrack = (event) => {
+        // stream[0] 是视频流，stream[1] 是音频流
+        // tracks 是流的轨道，可以理解为流的内容
         event.streams[0].getTracks().forEach((track) => { // 将远端视频流添加到remoteStream中
           remoteStream.value!.addTrack(track)
         })
       }
     }
 
+    async function addAnswer(answer: RTCSessionDescriptionInit) {
+      await localPeer.value!.setRemoteDescription(answer)
+    }
+
     // offer和answer只有一个会被调用
     async function createOffer(sendMessage: (data: any) => void) {
       await createPeerConnection()
-
+      // console.log('create offer')
       const offer = await localPeer.value!.createOffer() // 生成本地描述信息
       await localPeer.value!.setLocalDescription(offer) // 将本地描述信息设置到pc1中
       sendMessage({ type: 'offer', offer }) // 将本地描述信息发送给pc2
@@ -96,7 +103,7 @@ export const usePeerStore = defineStore(
     async function createAnswer(sendMessage: (data: any) => void, offer: RTCSessionDescriptionInit) {
       await createPeerConnection()
       await localPeer.value!.setRemoteDescription(offer) // 将pc2的描述信息设置到pc1中
-
+      // console.log('create answer')
       const answer = await localPeer.value!.createAnswer() // 生成本地描述信息
       await localPeer.value!.setLocalDescription(answer) // 将本地描述信息设置到pc1中
       sendMessage({ type: 'answer', answer }) // 将本地描述信息发送给pc2
@@ -114,6 +121,7 @@ export const usePeerStore = defineStore(
       createPeerConnection,
       createOffer,
       createAnswer,
+      addAnswer,
     }
   },
   {

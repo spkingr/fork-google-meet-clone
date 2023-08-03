@@ -8,6 +8,7 @@ export interface IOnHanlders {
   MemberJoined: (callback: Callback) => void
   MemberLeft: (callback: Callback) => void
   MessageFromPeer: (callback: Callback) => void
+  Joined: (callback: Callback) => void
 }
 
 export interface IEmitHanlders {
@@ -40,8 +41,17 @@ export const useSocketStore = defineStore(
           CLIENT.id = socket.id
 
           // ----------------------------------------------------------------------------------
-          /* 任意用户加入 */
+          /* 自己加入成功 */
+          function OnJoined(callback: Callback) {
+            // client?.emit('joined', { type: 'self', messgae: '您已进入房间' })
+            socket.on('join', (data: Data) => {
+              callback({ ...data, memberId: socket.id })
+            })
+          }
+
+          /* on 除自己之外的用户加入 */
           function OnMemberJoined(callback: Callback) {
+            // io.emit('member-joined', { type: 'broadcast', messgae: `${name}已进入房间` })
             socket.on('member-joined', (data: Data) => {
               callback({ ...data, memberId: socket.id })
             })
@@ -49,6 +59,7 @@ export const useSocketStore = defineStore(
 
           /* on 客户端离开房间 */
           function OnMemberLeft(callback: Callback) {
+            // io.emit('member-disconnect', { type: 'broadcast', message: `${name}已离开房间` })
             socket.on('member-left', (data: Data) => {
               callback({ ...data, memberId: socket.id })
             })
@@ -66,6 +77,7 @@ export const useSocketStore = defineStore(
             MemberJoined: OnMemberJoined,
             MemberLeft: OnMemberLeft,
             MessageFromPeer: OnMessageFromPeer,
+            Joined: OnJoined,
           }
 
           function on(event: keyof IOnHanlders, callback: Callback) {

@@ -17,22 +17,31 @@ const { CLIENT, run } = useSocketStore()
 await run() // 连接socket
 
 // webrtc 逻辑-----------------------------------------------------
+// 本地流准备好之后，给CLIENT增加监听
 const unwatch = watch(
   () => peerStore.isReady,
   (n) => {
     if (!n)
       return
     CLIENT.emit('MemberJoined', { ...userStore.user, memberId: CLIENT.id })
+    CLIENT.on('Joined', handleJoin)
     CLIENT.on('MemberJoined', handleMemberJoined)
     CLIENT.on('MessageFromPeer', hanldeMessageFromPeer)
     CLIENT.join(userStore.user)
   },
   { immediate: true },
 )
+// 自己进入房间
+function handleJoin(data: Data) {
+  // 监听到自己加入房间
+  // console.log('handleJoin', data)
+}
 
 // 监听到自己之外的用户加入
-function handleMemberJoined() {
+function handleMemberJoined(data: Data) {
+  // console.log('handleMemberJoined')
   // message 变量是由 peerStore.createOffer() 传入的   含有 offer 信息
+  // sendMessage(message = { type: 'offer', offer: offer })
   function sendMessage(message: Data) {
     CLIENT.emit('MessageToPeer', { ...message })
   }
@@ -41,11 +50,15 @@ function handleMemberJoined() {
 // 监听到对端的用户发送消息
 function hanldeMessageFromPeer(data: Data) {
   if (data.type === 'offer') {
-    const offer = data.offer
+    const { offer } = data
     function sendMessage(message: Data) {
       CLIENT.emit('MessageToPeer', { ...message, memberId: data.memberId })
     }
     return peerStore.createAnswer(sendMessage, offer) // 创建answer 并 发送给对端用户
+  }
+  if (data.type === 'answer') {
+    const { answer } = data
+    peerStore.addAnswer(answer) // 添加answer
   }
 }
 // -------------------------------------------------------------
