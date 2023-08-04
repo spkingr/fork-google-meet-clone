@@ -3,69 +3,94 @@ import Footer from './components/Footer.vue'
 import Room from './components/Room.vue'
 import Chat from './components/Chat.vue'
 import Member from './components/Member.vue'
+import { server } from './config'
+import { CLIENT } from './socket'
 import Adsorb from '~/components/Adsorb.vue'
 import { useUserStore } from '~/store/useUser'
-import { usePeerStore } from '~/store/usePeer'
-import type { Data } from '~/store/useSocket'
-import { useSocketStore } from '~/store/useSocket'
 
+const roomRef = ref<any>()
 const router = useRouter()
 const userStore = useUserStore()
-const peerStore = usePeerStore()
-const { CLIENT, run } = useSocketStore()
 
-await run() // 连接socket
+const localPeer = ref<RTCPeerConnection | null>(null)
+const remotePeer = ref<RTCPeerConnection | null>(null)
+const localStream = ref<MediaStream | null>(null)
+const remoteStream = ref<MediaStream | null>(null)
+const localVideo = ref<HTMLVideoElement | null>(null)
+const remoteVideo = ref<HTMLVideoElement | null>(null)
 
-// webrtc 逻辑-----------------------------------------------------
-// 本地流准备好之后，给CLIENT增加监听
-const unwatch = watch(
-  () => peerStore.isReady,
-  (n) => {
-    if (!n)
-      return
-    CLIENT.emit('MemberJoined', { ...userStore.user, memberId: CLIENT.id })
-    CLIENT.on('Joined', handleJoin)
-    CLIENT.on('MemberJoined', handleMemberJoined)
-    CLIENT.on('MessageFromPeer', hanldeMessageFromPeer)
-    CLIENT.join(userStore.user)
-  },
-  { immediate: true },
-)
-// 自己进入房间
-function handleJoin(data: Data) {
-  // 监听到自己加入房间
-  // console.log('handleJoin', data)
+function initClientListener() {
+  CLIENT.on('Joined', handleJoin)
+  CLIENT.on('MemberJoined', handleMemberJoined)
+  CLIENT.on('MessageFromPeer', hanldeMessageFromPeer)
+  CLIENT.join({ ...userStore.user, memberId: CLIENT.id })
 }
 
-// 监听到自己之外的用户加入
-function handleMemberJoined(data: Data) {
-  // console.log('handleMemberJoined')
-  // message 变量是由 peerStore.createOffer() 传入的   含有 offer 信息
-  // sendMessage(message = { type: 'offer', offer: offer })
-  function sendMessage(message: Data) {
-    CLIENT.emit('MessageToPeer', { ...message })
+function handleJoin(data: any) {
+  console.log('handleJoin')
+}
+
+function handleMemberJoined(member: any) {
+  // data = { type: 'broadcast', messgae: `${name}已进入房间`, memberId }
+  // console.log('handleMemberJoined', member)
+}
+
+function hanldeMessageFromPeer(message: any) {
+  // data = { type: 'client', messgae: `${name}已进入房间`, memberId }
+  // console.log('hanldeMessageFromPeer', message)
+}
+
+async function createPeerConnection() {
+  localPeer.value! = new RTCPeerConnection(server)
+
+  const remoteStream = new MediaStream() // 用于接收远端视频流
+  remoteVideo.value!.srcObject = remoteStream
+
+  localStream.value!.getTracks().forEach((track) => { // 将本地视频流添加到RTCPeerConnection中
+    localPeer.value!.addTrack(track, localStream.value!)
+  })
+
+  localPeer.value!.ontrack = (event) => { // 监听远端视频流的到来
+    event.streams[0].getTracks().forEach((track) => { // 将远端视频流添加到remoteStream中
+      remoteStream.addTrack(track)
+    })
   }
-  peerStore.createOffer(sendMessage) // 创建offer 并 发送给对端用户
-}
-// 监听到对端的用户发送消息
-function hanldeMessageFromPeer(data: Data) {
-  if (data.type === 'offer') {
-    const { offer } = data
-    function sendMessage(message: Data) {
-      CLIENT.emit('MessageToPeer', { ...message, memberId: data.memberId })
+
+  localPeer.value!.onicecandidate = (event) => { // 监听本地候选者信息
+    if (event.candidate) {
+      // ...
     }
-    return peerStore.createAnswer(sendMessage, offer) // 创建answer 并 发送给对端用户
-  }
-  if (data.type === 'answer') {
-    const { answer } = data
-    peerStore.addAnswer(answer) // 添加answer
   }
 }
-// -------------------------------------------------------------
+
+async function addAnswer(answer: RTCSessionDescriptionInit) {
+  await localPeer.value!.setRemoteDescription(answer)
+}
+
+async function addIceCandidate(candidate: RTCIceCandidate) {
+  await localPeer.value!.addIceCandidate(candidate)
+}
+
+// offer和answer只有一个会被调用
+async function createOffer(sendMessage: (data: any) => void) {
+  await createPeerConnection()
+  console.log('localPeer.value! : create offer')
+  const offer = await localPeer.value!.createOffer() // 生成本地描述信息
+  await localPeer.value!.setLocalDescription(offer) // 将本地描述信息设置到pc1中
+  sendMessage({ type: 'offer', offer }) // 将本地描述信息发送给pc2
+}
+
+async function createAnswer(sendMessage: (data: any) => void, offer: RTCSessionDescriptionInit) {
+  await createPeerConnection()
+  await localPeer.value!.setRemoteDescription(offer) // 将pc2的描述信息设置到pc1中
+  console.log('create answer')
+  const answer = await localPeer.value!.createAnswer() // 生成本地描述信息
+  await localPeer.value!.setLocalDescription(answer) // 将本地描述信息设置到pc1中
+  sendMessage({ type: 'answer', answer }) // 将本地描述信息发送给pc2
+}
 
 // 按钮操作 ---------------------------------------------------------
 const share = ref(false) // 默认不共享
-const roomRef = ref<any>()
 type ButtonType = 'audio' | 'video' | 'share'
 const handlers = {
   audio: () => toggleAudio(),
@@ -124,23 +149,12 @@ function hangup() {
   router.push('/')
 }
 
-// 判断用户是否有房间号 ----------------------------------------------
-const { open: openLoading, close: closeLoading } = useLoading()
-const hasCheckedRoomID = ref(false)
-function checkRoomID() {
-  if (userStore.isInRoom())
-    return hasCheckedRoomID.value = true
-  openLoading()
-  setTimeout(() => {
-    closeLoading()
-    router.push('/')
-  }, 1000)
+function localStreamReady() {
+  initClientListener() // socket实例初始化监听
 }
-checkRoomID()
-// ------------------------------------------------------------------
 
 onUnmounted(() => {
-  unwatch()
+  // todo:  close socket connection
 })
 </script>
 
@@ -156,10 +170,10 @@ onUnmounted(() => {
     <div h="[calc(100vh-75px)]" flex>
       <div overflow-hidden flex-1 bg-gray-100 rounded-2 transition-all-500>
         <Room
-          v-if="hasCheckedRoomID"
           ref="roomRef"
           :video="userStore.userConfig.video"
           :audio="userStore.userConfig.audio"
+          @ready="localStreamReady"
         />
       </div>
       <div w-0 :class="{ 'w-5': currentSide }" />
