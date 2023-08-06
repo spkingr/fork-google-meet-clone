@@ -27,15 +27,19 @@ function handleJoin(data: any) {
 
 function handleMemberJoined(data: any) {
   const { memberId } = data
-  console.log('member joined', memberId)
   createOffer(memberId) // 注意⚠️：这里的memberId是对端的id
 }
 
+/**
+ * @description
+ * 1. 来自对端的消息
+ * 2. data的type有三种 'offer' | 'answer' | 'candidate
+ * 3. memberId是对端的id 即这个消息是从哪个对端发来的
+ */
 async function hanldeMessageFromPeer(data: any) {
-  const { type, memberId } = data
-  console.log('message from peer', type, memberId)
+  const { type, memberId: fromId } = data // 这个id来自谁
   if (type === 'offer')
-    await createAnswer(memberId, data.offer)
+    await createAnswer(fromId, data.offer)
   if (type === 'answer')
     await addAnswer(data.answer)
   if (type === 'candidate')
@@ -58,14 +62,15 @@ async function createPeerConnection(memberId: string) {
     })
   }
 
-  localPeer.value!.onicecandidate = (event) => { // 监听本地候选者信息
-    if (event.candidate) {
-      CLIENT.emit(
-        'MessageToPeer',
-        { type: 'candidate', candidate: event.candidate, memberId },
-      )
-    }
-  }
+  // 这一步发生在createAnswer之后
+  // localPeer.value!.onicecandidate = (event) => { // 监听本地候选者信息
+  //   if (event.candidate) {
+  //     CLIENT.emit(
+  //       'MessageToPeer',
+  //       { type: 'candidate', candidate: event.candidate, memberId }, // 将本地候选者信息发送给对端
+  //     )
+  //   }
+  // }
 }
 
 async function addAnswer(answer: RTCSessionDescriptionInit) {
@@ -73,14 +78,12 @@ async function addAnswer(answer: RTCSessionDescriptionInit) {
 }
 
 async function addIceCandidate(candidate: RTCIceCandidate) {
-  console.log(localPeer.value)
   await localPeer.value!.addIceCandidate(candidate)
 }
 
 // offer和answer只有一个会被调用
 async function createOffer(memberId: string) {
   await createPeerConnection(memberId)
-  console.log('create offer')
   const offer = await localPeer.value!.createOffer() // 生成本地描述信息
   await localPeer.value!.setLocalDescription(offer) // 将本地描述信息设置到本地中
   CLIENT.emit('MessageToPeer', { type: 'offer', offer, memberId }) // 将本地描述信息发送给对端
@@ -89,7 +92,6 @@ async function createOffer(memberId: string) {
 async function createAnswer(memberId: string, offer: RTCSessionDescriptionInit) {
   await createPeerConnection(memberId)
   await localPeer.value!.setRemoteDescription(offer) // 将对端的描述信息设置到本地
-  console.log('create answer')
   const answer = await localPeer.value!.createAnswer() // 生成本地描述信息
   await localPeer.value!.setLocalDescription(answer) // 将本地描述信息设置到本地
   CLIENT.emit('MessageToPeer', { type: 'answer', answer, memberId }) // 将本地描述信息发送给对端
@@ -111,16 +113,16 @@ async function statusChange(payload: { type: ButtonType; status: boolean }) {
 }
 
 function toggleAudio() {
-  roomRef.value.toggleAudio()
+  roomRef.value!.toggleAudio()
 }
 function toggleVideo() {
   if (share.value) // 共享状态下不允许操作摄像头
     return '[toggle error] not allow when sharing'
-  roomRef.value.toggleVideo()
+  roomRef.value!.toggleVideo()
 }
 async function toggleShare(toggle: boolean) {
   share.value = toggle
-  const [err] = await roomRef.value.toggleShare(toggle)
+  const [err] = await roomRef.value!.toggleShare(toggle)
   if (err)
     share.value = false
   else

@@ -128,7 +128,6 @@ function addEmits() {
    * }
    */
   function EmitMessageToPeer(data: Data) {
-    console.log('socket emit', data.type)
     socket.emit('message-to-peer', data)
   }
 
@@ -159,7 +158,6 @@ function addMethods() {
 socket.on('connect', () => {
   /* 客户端id */
   CLIENT.id = socket.id
-  console.log('id', socket.id)
 
   /* 添加各种监听事件 */
   addMethods()

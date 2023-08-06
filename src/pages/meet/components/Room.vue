@@ -97,7 +97,7 @@ onMounted(async () => {
       />
     </div>
     <Moveable :x="300" :y="200" :height="420" :width="600">
-      <video ref="remoteVideo" w-full h-full autoplay muted playsinline />
+      <video ref="remoteVideo" w-full h-full autoplay muted playsinline class="mirror" />
     </Moveable>
   </div>
 </template>
