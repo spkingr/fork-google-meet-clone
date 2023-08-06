@@ -31,34 +31,51 @@ const CLIENT: ICLIENT = {
 }
 
 function addListeners() {
-  /* 自己加入成功 */
+  /**
+   * on 客户端进入房间
+   * @param callback
+   * @returns
+   * @data  { type: 'self', memberId: <string> }
+   */
   function OnJoined(callback: Callback) {
-    // client?.emit('joined', data = { type: 'self', messgae: '您已进入房间' })
-    socket.on('join', (data: Data) => {
-      callback({ ...data, memberId: socket.id })
+    socket.on('joined', (data: Data) => {
+      callback({ ...data })
     })
   }
 
-  /* on 除自己之外的用户加入 */
+  /**
+   * on 客户端进入房间
+   * @param callback
+   * @returns
+   * @data  { type: 'broadcast', memberId: <string> }
+   */
   function OnMemberJoined(callback: Callback) {
-    // io.emit('member-joined', data = { type: 'broadcast', messgae: `${name}已进入房间` })
     socket.on('member-joined', (data: Data) => {
-      callback({ ...data, memberId: socket.id })
+      callback({ ...data })
     })
   }
 
-  /* on 客户端离开房间 */
+  /**
+   * on 客户端离开房间
+   * @param callback
+   * @returns
+   * @data  { type: 'broadcast', memberId: <string> }
+   */
   function OnMemberLeft(callback: Callback) {
-    // io.emit('member-disconnect', data = { type: 'broadcast', message: `${name}已离开房间` })
     socket.on('member-left', (data: Data) => {
-      callback({ ...data, memberId: socket.id })
+      callback({ ...data })
     })
   }
 
-  /* on 监听其他端的消息 */
+  /**
+   * on 客户端发送消息
+   * @param callback
+   * @returns
+   * @data  { type: 'offer' | 'answer' | 'candidate', memberId: <string> }
+   */
   function OnMessageFromPeer(callback: Callback) {
     socket.on('message-from-peer', (data: Data) => {
-      callback({ ...data, memberId: socket.id })
+      callback({ ...data })
     })
   }
 
@@ -78,18 +95,40 @@ function addListeners() {
 }
 
 function addEmits() {
-  /* emit 监听用户离开房间 */
+  /**
+   * emit 用户离开房间
+   * @param data
+   * @returns
+   * @data  { memberId: <string>, any: any }
+   */
   function EmitMemberLeft(data: Data) {
     socket.emit('member-left', data)
   }
 
-  /* emit 监听用户进入房间 */
+  /**
+   * emit 用户离开房间
+   * @param data
+   * @returns
+   * @data  { memberId: <string>, any: any }
+   */
   function EmitMemberJoined(data: Data) {
     socket.emit('member-joined', data)
   }
 
-  /* emit 用户发送事件 */
+  /**
+   * emit 用户离开房间
+   * @param data
+   * @returns
+   * @data  {
+   *    type: 'offer' | 'answer' | 'candidate',
+   *    memberId: <string>,
+   *    offer: any,
+   *    answer: any,
+   *    candidate: any
+   * }
+   */
   function EmitMessageToPeer(data: Data) {
+    console.log('socket emit', data.type)
     socket.emit('message-to-peer', data)
   }
 
@@ -110,7 +149,7 @@ function addMethods() {
   addEmits()
   addListeners()
 
-  // 用户专属join
+  // 本地用户专属join
   function Join(data: Data) {
     socket.emit('join', data)
   }
@@ -120,6 +159,9 @@ function addMethods() {
 socket.on('connect', () => {
   /* 客户端id */
   CLIENT.id = socket.id
+  console.log('id', socket.id)
+
+  /* 添加各种监听事件 */
   addMethods()
 })
 

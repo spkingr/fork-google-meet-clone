@@ -8,16 +8,11 @@ import { CLIENT } from './socket'
 import Adsorb from '~/components/Adsorb.vue'
 import { useUserStore } from '~/store/useUser'
 
-const roomRef = ref<any>()
+const roomRef = ref<InstanceType<typeof Room>>()
 const router = useRouter()
 const userStore = useUserStore()
 
 const localPeer = ref<RTCPeerConnection | null>(null)
-const remotePeer = ref<RTCPeerConnection | null>(null)
-const localStream = ref<MediaStream | null>(null)
-const remoteStream = ref<MediaStream | null>(null)
-const localVideo = ref<HTMLVideoElement | null>(null)
-const remoteVideo = ref<HTMLVideoElement | null>(null)
 
 function initClientListener() {
   CLIENT.on('Joined', handleJoin)
@@ -27,27 +22,34 @@ function initClientListener() {
 }
 
 function handleJoin(data: any) {
-  console.log('handleJoin')
+  console.warn('you have joined the room')
 }
 
-function handleMemberJoined(member: any) {
-  // data = { type: 'broadcast', messgae: `${name}已进入房间`, memberId }
-  // console.log('handleMemberJoined', member)
+function handleMemberJoined(data: any) {
+  const { memberId } = data
+  console.log('member joined', memberId)
+  createOffer(memberId) // 注意⚠️：这里的memberId是对端的id
 }
 
-function hanldeMessageFromPeer(message: any) {
-  // data = { type: 'client', messgae: `${name}已进入房间`, memberId }
-  // console.log('hanldeMessageFromPeer', message)
+async function hanldeMessageFromPeer(data: any) {
+  const { type, memberId } = data
+  console.log('message from peer', type, memberId)
+  if (type === 'offer')
+    await createAnswer(memberId, data.offer)
+  if (type === 'answer')
+    await addAnswer(data.answer)
+  if (type === 'candidate')
+    await addIceCandidate(data.candidate)
 }
 
-async function createPeerConnection() {
-  localPeer.value! = new RTCPeerConnection(server)
+async function createPeerConnection(memberId: string) {
+  localPeer.value = new RTCPeerConnection(server)
 
   const remoteStream = new MediaStream() // 用于接收远端视频流
-  remoteVideo.value!.srcObject = remoteStream
+  roomRef.value!.remoteVideo!.srcObject = remoteStream
 
-  localStream.value!.getTracks().forEach((track) => { // 将本地视频流添加到RTCPeerConnection中
-    localPeer.value!.addTrack(track, localStream.value!)
+  roomRef.value!.localStream!.getTracks().forEach((track) => { // 将本地视频流添加到RTCPeerConnection中
+    localPeer.value!.addTrack(track, roomRef.value!.localStream!)
   })
 
   localPeer.value!.ontrack = (event) => { // 监听远端视频流的到来
@@ -58,7 +60,10 @@ async function createPeerConnection() {
 
   localPeer.value!.onicecandidate = (event) => { // 监听本地候选者信息
     if (event.candidate) {
-      // ...
+      CLIENT.emit(
+        'MessageToPeer',
+        { type: 'candidate', candidate: event.candidate, memberId },
+      )
     }
   }
 }
@@ -68,25 +73,26 @@ async function addAnswer(answer: RTCSessionDescriptionInit) {
 }
 
 async function addIceCandidate(candidate: RTCIceCandidate) {
+  console.log(localPeer.value)
   await localPeer.value!.addIceCandidate(candidate)
 }
 
 // offer和answer只有一个会被调用
-async function createOffer(sendMessage: (data: any) => void) {
-  await createPeerConnection()
-  console.log('localPeer.value! : create offer')
+async function createOffer(memberId: string) {
+  await createPeerConnection(memberId)
+  console.log('create offer')
   const offer = await localPeer.value!.createOffer() // 生成本地描述信息
-  await localPeer.value!.setLocalDescription(offer) // 将本地描述信息设置到pc1中
-  sendMessage({ type: 'offer', offer }) // 将本地描述信息发送给pc2
+  await localPeer.value!.setLocalDescription(offer) // 将本地描述信息设置到本地中
+  CLIENT.emit('MessageToPeer', { type: 'offer', offer, memberId }) // 将本地描述信息发送给对端
 }
 
-async function createAnswer(sendMessage: (data: any) => void, offer: RTCSessionDescriptionInit) {
-  await createPeerConnection()
-  await localPeer.value!.setRemoteDescription(offer) // 将pc2的描述信息设置到pc1中
+async function createAnswer(memberId: string, offer: RTCSessionDescriptionInit) {
+  await createPeerConnection(memberId)
+  await localPeer.value!.setRemoteDescription(offer) // 将对端的描述信息设置到本地
   console.log('create answer')
   const answer = await localPeer.value!.createAnswer() // 生成本地描述信息
-  await localPeer.value!.setLocalDescription(answer) // 将本地描述信息设置到pc1中
-  sendMessage({ type: 'answer', answer }) // 将本地描述信息发送给pc2
+  await localPeer.value!.setLocalDescription(answer) // 将本地描述信息设置到本地
+  CLIENT.emit('MessageToPeer', { type: 'answer', answer, memberId }) // 将本地描述信息发送给对端
 }
 
 // 按钮操作 ---------------------------------------------------------

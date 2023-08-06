@@ -6,8 +6,8 @@ const emits = defineEmits(['ready'])
 
 // 获取本地摄像头 ----------------------------------------------
 const userStore = useUserStore()
-const localVideo = ref<HTMLVideoElement | null>(null)
 const localStream = ref<MediaStream | null>(null)
+const localVideo = ref<HTMLVideoElement | null>(null)
 const remoteVideo = ref<HTMLVideoElement | null>(null)
 
 function initLocalByConfig() {
