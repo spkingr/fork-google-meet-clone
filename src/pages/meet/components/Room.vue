@@ -66,7 +66,6 @@ async function toggleShare(toggle: boolean) {
   isSharing.value = toggle
   return [null]
 }
-
 // -----------------------------------------------------------
 
 defineExpose({

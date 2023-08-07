@@ -27,6 +27,7 @@ function handleJoin(data: any) {
 
 function handleMemberJoined(data: any) {
   const { memberId } = data
+  console.log('1. member joined', memberId)
   createOffer(memberId) // 注意⚠️：这里的memberId是对端的id
 }
 
@@ -37,7 +38,8 @@ function handleMemberJoined(data: any) {
  * 3. memberId是对端的id 即这个消息是从哪个对端发来的
  */
 async function hanldeMessageFromPeer(data: any) {
-  const { type, memberId: fromId } = data // 这个id来自谁
+  const { type, memberId: fromId } = data
+  console.log('3. message from peer', type)
   if (type === 'offer')
     await createAnswer(fromId, data.offer)
   if (type === 'answer')
@@ -46,7 +48,7 @@ async function hanldeMessageFromPeer(data: any) {
     await addIceCandidate(data.candidate)
 }
 
-async function createPeerConnection(memberId: string) {
+async function createPeerConnection() {
   localPeer.value = new RTCPeerConnection(server)
 
   const remoteStream = new MediaStream() // 用于接收远端视频流
@@ -61,16 +63,35 @@ async function createPeerConnection(memberId: string) {
       remoteStream.addTrack(track)
     })
   }
+}
 
-  // 这一步发生在createAnswer之后
-  // localPeer.value!.onicecandidate = (event) => { // 监听本地候选者信息
-  //   if (event.candidate) {
-  //     CLIENT.emit(
-  //       'MessageToPeer',
-  //       { type: 'candidate', candidate: event.candidate, memberId }, // 将本地候选者信息发送给对端
-  //     )
-  //   }
-  // }
+function peerListeners(memberId: string) {
+  localPeer.value!.onicecandidate = (event) => { // 监听本地候选者信息
+    if (event.candidate) {
+      CLIENT.emit(
+        'MessageToPeer',
+        { type: 'candidate', candidate: event.candidate, memberId }, // 将本地候选者信息发送给对端
+      )
+    }
+  }
+}
+
+// offer和answer只有一个会被调用
+async function createOffer(memberId: string) {
+  peerListeners(memberId)
+  console.log(`2. local create offer to ${memberId}`)
+  const offer = await localPeer.value!.createOffer() // 生成本地描述信息
+  await localPeer.value!.setLocalDescription(offer) // 将本地描述信息设置到本地中
+  CLIENT.emit('MessageToPeer', { type: 'offer', offer, memberId }) // 将本地描述信息发送给对端
+}
+
+async function createAnswer(memberId: string, offer: RTCSessionDescriptionInit) {
+  peerListeners(memberId)
+  console.log('local create answer ')
+  await localPeer.value!.setRemoteDescription(offer) // 将对端的描述信息设置到本地
+  const answer = await localPeer.value!.createAnswer() // 生成本地描述信息
+  await localPeer.value!.setLocalDescription(answer) // 将本地描述信息设置到本地
+  CLIENT.emit('MessageToPeer', { type: 'answer', answer, memberId }) // 将本地描述信息发送给对端
 }
 
 async function addAnswer(answer: RTCSessionDescriptionInit) {
@@ -78,25 +99,9 @@ async function addAnswer(answer: RTCSessionDescriptionInit) {
 }
 
 async function addIceCandidate(candidate: RTCIceCandidate) {
+  console.log('add ice candidate')
   await localPeer.value!.addIceCandidate(candidate)
 }
-
-// offer和answer只有一个会被调用
-async function createOffer(memberId: string) {
-  await createPeerConnection(memberId)
-  const offer = await localPeer.value!.createOffer() // 生成本地描述信息
-  await localPeer.value!.setLocalDescription(offer) // 将本地描述信息设置到本地中
-  CLIENT.emit('MessageToPeer', { type: 'offer', offer, memberId }) // 将本地描述信息发送给对端
-}
-
-async function createAnswer(memberId: string, offer: RTCSessionDescriptionInit) {
-  await createPeerConnection(memberId)
-  await localPeer.value!.setRemoteDescription(offer) // 将对端的描述信息设置到本地
-  const answer = await localPeer.value!.createAnswer() // 生成本地描述信息
-  await localPeer.value!.setLocalDescription(answer) // 将本地描述信息设置到本地
-  CLIENT.emit('MessageToPeer', { type: 'answer', answer, memberId }) // 将本地描述信息发送给对端
-}
-
 // 按钮操作 ---------------------------------------------------------
 const share = ref(false) // 默认不共享
 type ButtonType = 'audio' | 'video' | 'share'
@@ -157,8 +162,9 @@ function hangup() {
   router.push('/')
 }
 
-function localStreamReady() {
+async function localStreamReady() {
   initClientListener() // socket实例初始化监听
+  await createPeerConnection() // 创建RTCPeerConnection实例
 }
 
 onUnmounted(() => {
