@@ -83,6 +83,10 @@ onMounted(async () => {
   initLocalByConfig()
   emits('ready')
 })
+
+onUnmounted(() => {
+  localStream.value!.getTracks().forEach(track => track.stop())
+})
 </script>
 
 <template>

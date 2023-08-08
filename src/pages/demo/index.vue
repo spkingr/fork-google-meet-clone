@@ -15,6 +15,7 @@ function initClientListener() {
   CLIENT.on('MemberJoined', handleMemberJoined)
   CLIENT.on('MessageFromPeer', hanldeMessageFromPeer)
   CLIENT.on('Heartbeat', hanleHeartbeat)
+
   CLIENT.join({ ...userStore.user, memberId: CLIENT.id })
 }
 
@@ -135,6 +136,14 @@ onMounted(async () => {
   initClientListener()
   await createPeerConnection()
   window.addEventListener('beforeunload', leaveChannel)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('beforeunload', leaveChannel)
+  localPeer.value?.close()
+  localStream.value?.getTracks().forEach((track) => {
+    track.stop()
+  })
 })
 </script>
 

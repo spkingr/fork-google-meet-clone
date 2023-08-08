@@ -13,7 +13,6 @@ export interface IOnHanlders {
 
 export interface IEmitHanlders {
   MemberLeft: (data: Data) => void
-  MemberJoined: (data: Data) => void
   MessageToPeer: (data: Data) => void
   Heartbeat: (data: Data) => void
   Leave: (data: Data) => void
@@ -54,6 +53,9 @@ function addListeners() {
    */
   function OnMemberJoined(callback: Callback) {
     socket.on('member-joined', (data: Data) => {
+      const { memberId } = data
+      if (memberId === CLIENT.id)
+        return
       callback({ ...data })
     })
   }
@@ -123,17 +125,7 @@ function addEmits() {
   }
 
   /**
-   * emit 用户离开房间
-   * @param data
-   * @returns
-   * @data  { memberId: <string>, [any]: <any> }
-   */
-  function EmitMemberJoined(data: Data) {
-    socket.emit('member-joined', data)
-  }
-
-  /**
-   * emit 用户离开房间
+   * emit 用户发送消息
    * @param data
    * @returns
    * @data  {
@@ -169,7 +161,6 @@ function addEmits() {
 
   const emitHanlders: IEmitHanlders = {
     MemberLeft: EmitMemberLeft,
-    MemberJoined: EmitMemberJoined,
     MessageToPeer: EmitMessageToPeer,
     Heartbeat: emitHeartBeat,
     Leave: emitLeave,
