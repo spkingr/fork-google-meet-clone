@@ -32,7 +32,7 @@ export function useLoading(target?: Ref<HTMLElement>) {
   function createLoading() {
     // ikun svg
     return `
-      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30px" height="30px" viewBox="0 0 1500 1315" version="1.1">
+      <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="40px" height="40px" viewBox="0 0 1500 1315" version="1.1">
         <title>ikun</title>
         <g id="ikun" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
           <circle id="ball2" fill="#FF7802" cx="161.5" cy="926.5" r="146.5">
@@ -61,21 +61,24 @@ export function useLoading(target?: Ref<HTMLElement>) {
     loading.value = true
   }
 
+  function checkMask() {
+    const mask = document.querySelector('.__mask__')
+    mask && document.body.removeChild(mask)
+  }
+
   const unwatch = watch(
     () => loading.value,
     (val) => {
       if (val)
         return createMask()
-      const mask = document.querySelector('.__mask__')
-      mask && document.body.removeChild(mask)
+      checkMask()
     },
     { immediate: true },
   )
 
   const resize = () => {
     if (loading.value) {
-      const mask = document.querySelector('.__mask__')
-      mask && document.body.removeChild(mask)
+      checkMask()
       createMask()
     }
   }

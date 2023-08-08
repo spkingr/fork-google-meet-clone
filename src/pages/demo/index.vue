@@ -130,20 +130,11 @@ function getMediaStream() {
 async function leaveChannel() {
   CLIENT.emit('Leave', { memberId: CLIENT.id })
 }
-
 onMounted(async () => {
   await getUserMedia()
   initClientListener()
   await createPeerConnection()
   window.addEventListener('beforeunload', leaveChannel)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('beforeunload', leaveChannel)
-  localPeer.value?.close()
-  localStream.value?.getTracks().forEach((track) => {
-    track.stop()
-  })
 })
 </script>
 
