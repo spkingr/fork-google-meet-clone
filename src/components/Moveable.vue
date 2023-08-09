@@ -123,7 +123,10 @@ function mouseupScaleHandler(e: MouseEvent) {
 
 <template>
   <div
-    :class="{ selected, 'moveable-wrapper': !selected }"
+    :class="{
+      'selected': selected,
+      'moveable-wrapper': selected,
+    }"
     :style="scaleableStyle"
     absolute z-2147483647
     @click="clickHanlder"
