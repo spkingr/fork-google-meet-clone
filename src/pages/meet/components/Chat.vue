@@ -37,8 +37,9 @@ function sendMessage() {
       >
         <div flex items-center color-teal-800 font-800>
           <div mr-2>
-            {{ msg.name }}
+            {{ msg.name === user.name ? 'you' : msg.name }}
           </div>
+          <div v-if="msg.name === user.name " mr-2 i-iconoir:people-tag />
           <div i-openmoji:waving-hand />
         </div>
         <div text="sm dark left">
