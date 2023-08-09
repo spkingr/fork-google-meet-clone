@@ -1,6 +1,7 @@
 <script setup lang='ts'>
 import 'lu2/theme/edge/css/common/ui/Tips.css'
 import dayjs from 'dayjs'
+import type { ButtonType } from '../types'
 import { useUserStore } from '~/store/useUser'
 
 const props = defineProps<Props>()
@@ -11,8 +12,6 @@ const emits = defineEmits<{
 }>()
 
 const userStore = useUserStore()
-
-type ButtonType = 'audio' | 'video' | 'share'
 
 interface Props {
   audio: boolean

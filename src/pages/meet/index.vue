@@ -5,9 +5,10 @@ import Chat from './components/Chat.vue'
 import Member from './components/Member.vue'
 import { server } from './config'
 import { CLIENT } from './socket'
-import Adsorb from '~/components/Adsorb.vue'
+import type { ButtonType, Message } from './types'
 import { useUserStore } from '~/store/useUser'
 
+const CHANNEL = ref<RTCDataChannel | null>(null)
 const roomRef = ref<InstanceType<typeof Room>>()
 const router = useRouter()
 const userStore = useUserStore()
@@ -32,15 +33,10 @@ function handleJoin(data: any) {
 
 function handleMemberJoined(data: any) {
   const { memberId } = data
-  createOffer(memberId) // 注意⚠️：这里的memberId是对端的id
+  createOffer(memberId)
 }
 
-/**
- * @description
- * 1. 来自对端的消息
- * 2. data的type有三种 'offer' | 'answer' | 'candidate
- * 3. memberId是对端的id 即这个消息是从哪个对端发来的
- */
+// rtc ---------------------------------------------------------------------------------
 async function hanldeMessageFromPeer(data: any) {
   const { type, memberId: fromId } = data
   if (type === 'offer')
@@ -54,42 +50,49 @@ async function hanldeMessageFromPeer(data: any) {
 async function createPeerConnection() {
   localPeer.value = new RTCPeerConnection(server)
 
-  const remoteStream = new MediaStream() // 用于接收远端视频流
+  // 这里处理本地和远端的视频流
+  const remoteStream = new MediaStream()
   roomRef.value!.remoteVideo!.srcObject = remoteStream
-
-  roomRef.value!.localStream!.getTracks().forEach((track) => { // 将本地视频流添加到RTCPeerConnection中
+  roomRef.value!.localStream!.getTracks().forEach((track) => {
     localPeer.value!.addTrack(track, roomRef.value!.localStream!)
   })
-
   localPeer.value!.ontrack = (event) => { // 监听远端视频流的到来
     event.streams[0].getTracks().forEach((track) => { // 将远端视频流添加到remoteStream中
       remoteStream.addTrack(track)
     })
   }
+
+  // 打开channel
+  openChannel()
 }
 
 function peerListeners(memberId: string) {
-  localPeer.value!.onicecandidate = (event) => { // 监听本地候选者信息
+  localPeer.value!.onicecandidate = (event) => {
     if (!event.candidate)
       return
     CLIENT.emit(
       'MessageToPeer',
-      { type: 'candidate', candidate: event.candidate, memberId }, // 将本地候选者信息发送给对端
+      { type: 'candidate', candidate: event.candidate, memberId },
     )
+  }
+  localPeer.value!.oniceconnectionstatechange = () => {
+    if (localPeer.value!.iceConnectionState === 'disconnected')
+      return console.warn('ice connection state disconnected >>>>>>>>')
+    console.warn('ice connection state', localPeer.value!.iceConnectionState)
   }
 }
 
 // offer和answer只有一个会被调用
 async function createOffer(memberId: string) {
   peerListeners(memberId)
-  const offer = await localPeer.value!.createOffer() // 生成本地描述信息
-  await localPeer.value!.setLocalDescription(offer) // 将本地描述信息设置到本地中
-  CLIENT.emit('MessageToPeer', { type: 'offer', offer, memberId }) // 将本地描述信息发送给对端
+  const offer = await localPeer.value!.createOffer()
+  await localPeer.value!.setLocalDescription(offer)
+  CLIENT.emit('MessageToPeer', { type: 'offer', offer, memberId })
 }
 
 async function createAnswer(memberId: string, offer: RTCSessionDescriptionInit) {
   peerListeners(memberId)
-  await localPeer.value!.setRemoteDescription(offer) // 将对端的描述信息设置到本地
+  await localPeer.value!.setRemoteDescription(offer)
   const answer = await localPeer.value!.createAnswer()
   await localPeer.value!.setLocalDescription(answer)
   CLIENT.emit('MessageToPeer', { type: 'answer', answer, memberId })
@@ -102,14 +105,44 @@ async function addAnswer(answer: RTCSessionDescriptionInit) {
 async function addIceCandidate(candidate: RTCIceCandidate) {
   await localPeer.value!.addIceCandidate(candidate)
 }
+// ---------------------------------------------------------------------------------
+
+// channel -------------------------------------------------------
+const msgList = ref<Message[]>([])
+
+function openChannel() {
+  const channel = localPeer.value!.createDataChannel('channel')
+  channel.onopen = () => {
+    console.warn('channel open')
+  }
+  channel.onmessage = (event) => {
+    if (!event.data)
+      return console.warn('channel message is empty')
+    const msg: Message = JSON.parse(event.data)
+    console.log('channel message', msg)
+    msgList.value.push(msg)
+  }
+  channel.onclose = () => {
+    console.warn('channel close')
+  }
+  CHANNEL.value = channel
+}
+
+function sendChannelMessage(message: Message) {
+  CHANNEL.value!.send(JSON.stringify(message))
+  msgList.value.push(message)
+}
+// ---------------------------------------------------------------
+
 // 按钮操作 ---------------------------------------------------------
 const share = ref(false) // 默认不共享
-type ButtonType = 'audio' | 'video' | 'share'
+
 const handlers = {
   audio: () => toggleAudio(),
   video: () => toggleVideo(),
   share: (toggle: boolean) => toggleShare(toggle),
 }
+
 async function statusChange(payload: { type: ButtonType; status: boolean }) {
   const err = await handlers[payload.type](payload.status)
   if (err)
@@ -120,11 +153,13 @@ async function statusChange(payload: { type: ButtonType; status: boolean }) {
 function toggleAudio() {
   roomRef.value!.toggleAudio()
 }
+
 function toggleVideo() {
   if (share.value) // 共享状态下不允许操作摄像头
     return '[toggle error] not allow when sharing'
   roomRef.value!.toggleVideo()
 }
+
 async function toggleShare(toggle: boolean) {
   share.value = toggle
   const [err] = await roomRef.value!.toggleShare(toggle)
@@ -185,8 +220,8 @@ async function leaveChannel() {
 }
 
 async function localStreamReady() {
-  initClientListener() // socket实例初始化监听
-  await createPeerConnection() // 创建RTCPeerConnection实例
+  initClientListener()
+  await createPeerConnection()
   window.addEventListener('beforeunload', leaveChannel)
 }
 
@@ -218,11 +253,16 @@ onUnmounted(() => {
       <div w-0 :class="{ 'w-5': currentSide }" />
       <div
         overflow-hidden
-        w-0 bg-orange rounded-2 transition-all-500
+        w-0 bg-gray-200 rounded-2 transition-all-500
         :class="{ 'w-360px': currentSide }"
       >
-        <Chat v-if="currentSide === 'chat'" />
-        <Member v-if="currentSide === 'member'" />
+        <Chat
+          v-show="currentSide === 'chat'"
+          :user="userStore.user"
+          :msg-list="msgList"
+          @send-message="sendChannelMessage"
+        />
+        <Member v-show="currentSide === 'member'" />
       </div>
     </div>
     <div h="60px">
