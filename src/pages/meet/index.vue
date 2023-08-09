@@ -119,7 +119,6 @@ function openChannel() {
     if (!event.data)
       return console.warn('channel message is empty')
     const msg: Message = JSON.parse(event.data)
-    console.log('channel message', msg)
     msgList.value.push(msg)
   }
   channel.onclose = () => {
