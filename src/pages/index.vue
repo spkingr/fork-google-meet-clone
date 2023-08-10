@@ -56,6 +56,9 @@ async function join() {
   const { data } = await queryRoomApi({ room_id: code.value })
   if (!data)
     return useMessage.error({ content: '会议不存在' })
+  if (data.member_count >= data.room_capacity)
+    return useMessage.error({ content: '房间已满' })
+
   userStore.modifyUser({ roomID: code.value })
   loading()
   router.push('/preview')

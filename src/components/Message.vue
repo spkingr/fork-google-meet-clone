@@ -14,7 +14,7 @@ function onClose() {
   <div
     v-if="showMessage"
     class="slide-in bg-white"
-    m="x-3 y-3"
+    m="x-5 y-6"
     min-w="240px"
     shadow="md"
     top="30px" left="50%"
@@ -36,7 +36,7 @@ function onClose() {
     />
 
     <!-- 消息文本 -->
-    <span text-sm text-dark v-text="props.content" />
+    <span text-dark v-text="props.content" />
 
     <!-- 手动关闭消息 -->
     <div

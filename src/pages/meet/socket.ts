@@ -9,6 +9,7 @@ export interface IOnHanlders {
   MessageFromPeer: (callback: Callback) => void
   Joined: (callback: Callback) => void
   Heartbeat: (callback: Callback) => void
+  RoomClosed: (callback: Callback) => void
 }
 
 export interface IEmitHanlders {
@@ -16,6 +17,7 @@ export interface IEmitHanlders {
   MessageToPeer: (data: Data) => void
   Heartbeat: (data: Data) => void
   Leave: (data: Data) => void
+  CloseRoom: (data: Data) => void
 }
 
 export interface ICLIENT {
@@ -85,12 +87,23 @@ function addListeners() {
   }
 
   /**
+   * on 房间关闭
+   * @params callback
+   * @returns
+   * @data { }
+   */
+  function onRoomClosed(callback: Callback) {
+    socket.on('room-closed', (data: Data) => {
+      callback({ ...data })
+    })
+  }
+
+  /**
    * on 心跳
    * @param callback
    * @returns
-   * @data  any
+   * @data  { }
    */
-
   function onHeartBeat(callback: Callback) {
     socket.on('heartbeat', (data: Data) => {
       callback({ ...data })
@@ -104,6 +117,7 @@ function addListeners() {
     MessageFromPeer: OnMessageFromPeer,
     Joined: OnJoined,
     Heartbeat: onHeartBeat,
+    RoomClosed: onRoomClosed,
   }
 
   function on(event: keyof IOnHanlders, callback: Callback) {
@@ -118,7 +132,7 @@ function addEmits() {
    * emit 用户离开房间
    * @param data
    * @returns
-   * @data  { memberId: <string>, [any]: <any> }
+   * @data  { memberId: <string>, roomID: <string>, [any]: <any> }
    */
   function EmitMemberLeft(data: Data) {
     socket.emit('member-left', data)
@@ -131,9 +145,10 @@ function addEmits() {
    * @data  {
    *    type: 'offer' | 'answer' | 'candidate',
    *    memberId: <string>,
-   *    offer: <any>,
-   *    answer: <any>,
-   *    candidate: <any>
+   *    roomID: <string>,
+   *    offer?: <any>,
+   *    answer?: <any>,
+   *    candidate?: <any>
    * }
    */
   function EmitMessageToPeer(data: Data) {
@@ -151,12 +166,23 @@ function addEmits() {
   }
 
   /**
+   * emit leave
    * @param data
    * @returns
-   * @data any
+   * @data any { memberId: <string>, roomID: <string> }
    */
   function emitLeave(data: Data) {
     socket.emit('leave', data)
+  }
+
+  /**
+   * emit close room
+   * @param data
+   * @returns
+   * @data any {memberId: <string>, roomID: <string>}
+   */
+  function emitCloseRoom(data: Data) {
+    socket.emit('close-room', data)
   }
 
   const emitHanlders: IEmitHanlders = {
@@ -164,6 +190,7 @@ function addEmits() {
     MessageToPeer: EmitMessageToPeer,
     Heartbeat: emitHeartBeat,
     Leave: emitLeave,
+    CloseRoom: emitCloseRoom,
   }
 
   function emit(event: keyof IEmitHanlders, data: Data) {

@@ -14,17 +14,19 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const localPeer = ref<RTCPeerConnection | null>(null)
+const { user: { roomID, isHost } } = userStore
 
 function initClientListener() {
   CLIENT.on('Joined', handleJoin)
   CLIENT.on('MemberJoined', handleMemberJoined)
   CLIENT.on('MessageFromPeer', hanldeMessageFromPeer)
   CLIENT.on('Heartbeat', hanleHeartbeat)
-  CLIENT.join({ ...userStore.user, memberId: CLIENT.id })
+  CLIENT.on('RoomClosed', hanldeRoomClosed)
+  CLIENT.join({ ...userStore.user, memberId: CLIENT.id, roomID })
 }
 
 function hanleHeartbeat() {
-  CLIENT.emit('Heartbeat', { memberId: CLIENT.id })
+  CLIENT.emit('Heartbeat', { memberId: CLIENT.id, roomID })
 }
 
 function handleJoin(data: any) {
@@ -33,9 +35,14 @@ function handleJoin(data: any) {
 
 function handleMemberJoined(data: any) {
   const { memberId } = data
+  userStore.clearUser()
   createOffer(memberId)
 }
 
+function hanldeRoomClosed(data: any) {
+  useMessage.warning({ content: '房间已关闭' })
+  gotoHome()
+}
 // rtc ---------------------------------------------------------------------------------
 async function hanldeMessageFromPeer(data: any) {
   const { type, memberId: fromId } = data
@@ -72,7 +79,7 @@ function peerListeners(memberId: string) {
       return
     CLIENT.emit(
       'MessageToPeer',
-      { type: 'candidate', candidate: event.candidate, memberId },
+      { type: 'candidate', candidate: event.candidate, memberId, roomID },
     )
   }
   localPeer.value!.oniceconnectionstatechange = () => {
@@ -87,7 +94,7 @@ async function createOffer(memberId: string) {
   peerListeners(memberId)
   const offer = await localPeer.value!.createOffer()
   await localPeer.value!.setLocalDescription(offer)
-  CLIENT.emit('MessageToPeer', { type: 'offer', offer, memberId })
+  CLIENT.emit('MessageToPeer', { type: 'offer', offer, memberId, roomID })
 }
 
 async function createAnswer(memberId: string, offer: RTCSessionDescriptionInit) {
@@ -95,7 +102,7 @@ async function createAnswer(memberId: string, offer: RTCSessionDescriptionInit) 
   await localPeer.value!.setRemoteDescription(offer)
   const answer = await localPeer.value!.createAnswer()
   await localPeer.value!.setLocalDescription(answer)
-  CLIENT.emit('MessageToPeer', { type: 'answer', answer, memberId })
+  CLIENT.emit('MessageToPeer', { type: 'answer', answer, memberId, roomID })
 }
 
 async function addAnswer(answer: RTCSessionDescriptionInit) {
@@ -113,16 +120,16 @@ const msgList = ref<Message[]>([])
 function openChannel() {
   const channel = localPeer.value!.createDataChannel('channel')
   channel.onopen = () => {
-    console.warn('channel open')
+    console.warn('----channel open----')
   }
   channel.onmessage = (event) => {
     if (!event.data)
-      return console.warn('channel message is empty')
+      return console.warn('----channel message is empty----')
     const msg: Message = JSON.parse(event.data)
     msgList.value.push(msg)
   }
   channel.onclose = () => {
-    console.warn('channel close')
+    console.warn('----channel close----')
   }
   CHANNEL.value = channel
 }
@@ -197,11 +204,12 @@ function gotoHome() {
 }
 
 function hangup() {
-  // todo------------------------------------------------------
-  // roomRef todo
   // rommRef 根据挂断用户来判断是否需要关闭房间 主持人挂断则关闭房间 其他人挂断则只关闭自己的流
-  // ----------------------------------------------------------
   userStore.clearUser()
+  if (!isHost)
+    leaveChannel()
+  else
+    closeRoom()
   gotoHome()
 }
 
@@ -214,8 +222,12 @@ function checkRoom() {
 checkRoom()
 // -----------------------------------------------------------
 
+function closeRoom() {
+  CLIENT.emit('CloseRoom', { memberId: CLIENT.id, roomID })
+}
+
 async function leaveChannel() {
-  CLIENT.emit('Leave', { memberId: CLIENT.id })
+  CLIENT.emit('Leave', { memberId: CLIENT.id, roomID })
 }
 
 async function localStreamReady() {
