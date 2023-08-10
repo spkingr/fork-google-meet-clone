@@ -59,7 +59,7 @@ async function join() {
   if (data.member_count >= data.room_capacity)
     return useMessage.error({ content: '房间已满' })
 
-  userStore.modifyUser({ roomID: code.value })
+  userStore.modifyUser({ roomID: code.value, isHost: false })
   loading()
   router.push('/preview')
 }
@@ -76,7 +76,7 @@ function jump() {
 }
 
 onMounted(() => {
-  jump()
+  jump() // 根据是否已经有房间信息来实行跳转
 })
 </script>
 

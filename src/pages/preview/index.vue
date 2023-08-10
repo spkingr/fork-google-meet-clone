@@ -11,7 +11,7 @@ const userStore = useUserStore()
 const router = useRouter()
 
 // 拿到主持人标识
-const isHost = userStore.user.isHost
+const { isHost } = userStore.user
 
 // input name & join
 const name = ref('')

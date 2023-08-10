@@ -35,12 +35,12 @@ function handleJoin(data: any) {
 
 function handleMemberJoined(data: any) {
   const { memberId } = data
-  userStore.clearUser()
   createOffer(memberId)
 }
 
 function hanldeRoomClosed(data: any) {
   useMessage.warning({ content: '房间已关闭' })
+  userStore.clearUser()
   gotoHome()
 }
 // rtc ---------------------------------------------------------------------------------
@@ -60,6 +60,7 @@ async function createPeerConnection() {
   // 这里处理本地和远端的视频流
   const remoteStream = new MediaStream()
   roomRef.value!.remoteVideo!.srcObject = remoteStream
+
   roomRef.value!.localStream!.getTracks().forEach((track) => {
     localPeer.value!.addTrack(track, roomRef.value!.localStream!)
   })
@@ -68,9 +69,6 @@ async function createPeerConnection() {
       remoteStream.addTrack(track)
     })
   }
-
-  // 打开channel
-  openChannel()
 }
 
 function peerListeners(memberId: string) {
@@ -92,6 +90,7 @@ function peerListeners(memberId: string) {
 // offer和answer只有一个会被调用
 async function createOffer(memberId: string) {
   peerListeners(memberId)
+  openChannel() // 打开channel
   const offer = await localPeer.value!.createOffer()
   await localPeer.value!.setLocalDescription(offer)
   CLIENT.emit('MessageToPeer', { type: 'offer', offer, memberId, roomID })
@@ -99,6 +98,7 @@ async function createOffer(memberId: string) {
 
 async function createAnswer(memberId: string, offer: RTCSessionDescriptionInit) {
   peerListeners(memberId)
+  openChannel() // 打开channel
   await localPeer.value!.setRemoteDescription(offer)
   const answer = await localPeer.value!.createAnswer()
   await localPeer.value!.setLocalDescription(answer)
@@ -119,12 +119,14 @@ const msgList = ref<Message[]>([])
 
 function openChannel() {
   const channel = localPeer.value!.createDataChannel('channel')
+  console.log('-----open channel ing------')
   channel.onopen = () => {
     console.warn('----channel open----')
   }
   channel.onmessage = (event) => {
     if (!event.data)
       return console.warn('----channel message is empty----')
+    console.log('the msg is ', event.data)
     const msg: Message = JSON.parse(event.data)
     msgList.value.push(msg)
   }
