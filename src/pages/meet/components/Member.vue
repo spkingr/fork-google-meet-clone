@@ -4,6 +4,6 @@
 
 <template>
   <div w-full h-full>
-    hello world
+    ing...
   </div>
 </template>
