@@ -19,5 +19,6 @@ declare module '@vue/runtime-core' {
     TheFooter: typeof import('./src/components/TheFooter.vue')['default']
     TheInput: typeof import('./src/components/TheInput.vue')['default']
     Tree: typeof import('./src/components/Tree.vue')['default']
+    Upload: typeof import('./src/components/Upload.vue')['default']
   }
 }

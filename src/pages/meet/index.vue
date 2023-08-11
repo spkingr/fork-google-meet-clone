@@ -119,14 +119,14 @@ const msgList = ref<Message[]>([])
 
 function openChannel() {
   const channel = localPeer.value!.createDataChannel('channel')
-  console.log('-----open channel ing------')
+  // console.log('-----open channel ing------')
   channel.onopen = () => {
     console.warn('----channel open----')
   }
   channel.onmessage = (event) => {
     if (!event.data)
       return console.warn('----channel message is empty----')
-    console.log('the msg is ', event.data)
+    // console.log('the msg is ', event.data)
     const msg: Message = JSON.parse(event.data)
     msgList.value.push(msg)
   }
