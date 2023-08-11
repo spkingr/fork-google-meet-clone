@@ -6,6 +6,7 @@ import { useLoading, useMessage } from '~/composables'
 import { useUserStore } from '~/store/useUser'
 import { queryRoomApi } from '~/api/live'
 
+// eslint-disable-next-line no-console
 console.log(adapter.browserDetails.browser)
 
 const router = useRouter()
