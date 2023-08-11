@@ -2,22 +2,24 @@ import { socket } from '~/plugins/socket'
 
 export type Callback = (data: any) => void
 export type Data = Record<string, any>
+export type Emit = (data: Data) => void
+export type On = (callback: Callback) => void
 
 export interface IOnHanlders {
-  MemberJoined: (callback: Callback) => void
-  MemberLeft: (callback: Callback) => void
-  MessageFromPeer: (callback: Callback) => void
-  Joined: (callback: Callback) => void
-  Heartbeat: (callback: Callback) => void
-  RoomClosed: (callback: Callback) => void
+  MemberJoined: On
+  MemberLeft: On
+  MessageFromPeer: On
+  Joined: On
+  Heartbeat: On
+  RoomClosed: On
 }
 
 export interface IEmitHanlders {
-  MemberLeft: (data: Data) => void
-  MessageToPeer: (data: Data) => void
-  Heartbeat: (data: Data) => void
-  Leave: (data: Data) => void
-  CloseRoom: (data: Data) => void
+  MemberLeft: Emit
+  MessageToPeer: Emit
+  Heartbeat: Emit
+  Leave: Emit
+  CloseRoom: Emit
 }
 
 export interface ICLIENT {
@@ -223,6 +225,4 @@ socket.on('disconnect', () => {
   console.warn('disconnect')
 })
 
-export {
-  CLIENT,
-}
+export { CLIENT }
