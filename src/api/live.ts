@@ -1,4 +1,4 @@
-import type { createRoomModal, queryRoomModal } from './modals/live.modal'
+import type { createRoomModal, queryRoomModal } from './models/live.model'
 import { createRequest } from './create'
 
 const PREFIX = 'live'
@@ -19,7 +19,7 @@ enum liveEnum {
  * @returns
  * @description
  * 1. 创建房间
- * 2. 需要判断是否已经创建过房间 不过一般是uuid随机生成房间id
+ * 2. 返回房间信息
  */
 export async function createRoomApi(data: createRoomModal) {
   const { data: res } = await request(

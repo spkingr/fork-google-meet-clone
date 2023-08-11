@@ -1,9 +1,12 @@
 <script setup lang='ts'>
+import adapter from 'webrtc-adapter'
 import HomeLayout from '~/layouts/home.vue'
 import meetSvg from '~/assets/meet.svg'
 import { useLoading, useMessage } from '~/composables'
 import { useUserStore } from '~/store/useUser'
 import { queryRoomApi } from '~/api/live'
+
+console.log(adapter.browserDetails.browser)
 
 const router = useRouter()
 const userStore = useUserStore()

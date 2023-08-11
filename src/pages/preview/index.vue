@@ -128,9 +128,12 @@ onUnmounted(() => {
 
 <template>
   <PreviewLayout>
-    <div w-full h-full p="x-160px y-130px" flex>
+    <div w-full h-full px="160px" pb="40px" flex items-center>
       <!--  video  -->
-      <div flex-1 b="1px solid gray-300" p-4 pb-14 rounded-2 relative>
+      <div
+        flex-1 b="1px solid gray-300" p-4 rounded-2
+        flex flex-col
+      >
         <div
           absolute left="50%" top--8 translate-x="-50%" w="150px" py-1 text-center
           rounded-2 transition-300 hover:bg-orange-4 cursor-pointer
@@ -138,11 +141,11 @@ onUnmounted(() => {
           This is your Tv 👏
         </div>
         <video
-          ref="localVideo" w-full h-auto
+          ref="localVideo" w-full h-auto rounded-2 flex-1
           autoplay playsinline muted
           class="mirror"
         />
-        <div absolute left-0 right-0 bottom-5 h-12>
+        <div h-15 bg-white mx-4 rounded="b-2">
           <Footer
             :video="userStore.userConfig.video"
             :audio="userStore.userConfig.audio"
