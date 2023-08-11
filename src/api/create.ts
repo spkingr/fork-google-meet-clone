@@ -2,8 +2,15 @@ import { createFetch } from '@vueuse/core'
 
 const URL = import.meta.env.VITE_BASE_URL
 
-export function createRequest(prefix: string) {
+enum headerEnum {
+  'json' = 'application/json',
+  'formdata' = 'multipart/form-data',
+}
+type headerType = keyof typeof headerEnum
+
+export function createRequest(prefix: string, type: headerType = 'json') {
   const REQUEST_ROUTER = `${URL}/${prefix}/`
+
   return createFetch({
     baseUrl: REQUEST_ROUTER,
     options: {
@@ -15,7 +22,7 @@ export function createRequest(prefix: string) {
     },
     fetchOptions: {
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': headerEnum[type],
       },
     },
   })
