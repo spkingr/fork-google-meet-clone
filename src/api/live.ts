@@ -1,7 +1,9 @@
 import type { createRoomModal, queryRoomModal } from './modals/live.modal'
-import { request } from '~/http/index'
+import { createRequest } from './create'
 
-const PREFIX = '/live'
+const PREFIX = 'live'
+
+const request = createRequest(PREFIX)
 
 enum liveEnum {
   GETROOM = 'getRooms',
@@ -19,12 +21,15 @@ enum liveEnum {
  * 1. 创建房间
  * 2. 需要判断是否已经创建过房间 不过一般是uuid随机生成房间id
  */
-export function createRoomApi(data: createRoomModal) {
-  return request({
-    url: `${PREFIX}/${liveEnum.ADDROOM}`,
-    method: 'post',
-    data,
-  })
+export async function createRoomApi(data: createRoomModal) {
+  const { data: res } = await request(
+    liveEnum.ADDROOM,
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    },
+  ).json()
+  return res.value
 }
 
 /**
@@ -36,10 +41,13 @@ export function createRoomApi(data: createRoomModal) {
  * 2. 存在返回房间信息
  * 3. 不存在返回null
  */
-export function queryRoomApi(data: queryRoomModal) {
-  return request({
-    url: `${PREFIX}/${liveEnum.QUERYROOM}`,
-    method: 'post',
-    data,
-  })
+export async function queryRoomApi(data: queryRoomModal) {
+  const { data: res } = await request(
+    liveEnum.QUERYROOM,
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    },
+  ).json()
+  return res.value
 }
