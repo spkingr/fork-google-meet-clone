@@ -12,10 +12,12 @@
     "postinstall": "npx simple-git-hooks"
   },
   "dependencies": {
+    "@emoji-mart/data": "^1.1.2",
     "@iconify/json": "^2.2.93",
     "@types/uuid": "^9.0.2",
     "@vueuse/core": "^10.1.2",
     "dayjs": "^1.11.9",
+    "emoji-mart-vue-fast": "^15.0.0",
     "lu2": "^2023.7.20",
     "pinia": "^2.1.4",
     "pinia-plugin-persistedstate": "^3.2.0",
