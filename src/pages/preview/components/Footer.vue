@@ -14,7 +14,8 @@ const emits = defineEmits<{
 const baseIconWithHover = `
 flex-center w-10 h-10 mx-3
 rounded-full transition-300
-hover:bg-gray-200 cursor-pointer 
+hover:bg-gray-100 hover:text-gray-500
+ cursor-pointer 
 `
 // -------------------------------------------------------------
 

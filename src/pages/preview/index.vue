@@ -144,7 +144,7 @@ onUnmounted(() => {
           autoplay playsinline muted
           class="mirror"
         />
-        <div h-15 bg-white mx-4 rounded="b-2">
+        <div h-15 mx-4 rounded="b-2">
           <Footer
             :video="userStore.userConfig.video"
             :audio="userStore.userConfig.audio"

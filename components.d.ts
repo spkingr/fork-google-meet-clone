@@ -11,6 +11,7 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     Adsorb: typeof import('./src/components/Adsorb.vue')['default']
     Dialog: typeof import('./src/components/Dialog.vue')['default']
+    Emoji: typeof import('./src/components/Emoji.vue')['default']
     Message: typeof import('./src/components/Message.vue')['default']
     Moveable: typeof import('./src/components/Moveable.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
