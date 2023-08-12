@@ -4,6 +4,7 @@ import Room from './components/Room.vue'
 import Chat from './components/Chat.vue'
 import Member from './components/Member.vue'
 import { server } from './config'
+import type { Data } from './socket'
 import { CLIENT } from './socket'
 import type { ButtonType, Message } from './types'
 import { useUserStore } from '~/store/useUser'
@@ -26,25 +27,25 @@ function initClientListener() {
 }
 
 function hanleHeartbeat() {
-  CLIENT.emit('Heartbeat', { memberId: CLIENT.id, roomID })
+  CLIENT.emit('Heartbeat', { memberId: CLIENT.id })
 }
 
-function handleJoin(data: any) {
+function handleJoin(data: Data) {
   console.warn('you have joined the room')
 }
 
-function handleMemberJoined(data: any) {
+function handleMemberJoined(data: Data) {
   const { memberId } = data
   createOffer(memberId)
 }
 
-function hanldeRoomClosed(data: any) {
+function hanldeRoomClosed(data: Data) {
   useMessage.warning({ content: '房间已关闭' })
   userStore.clearUser()
   gotoHome()
 }
 // rtc ---------------------------------------------------------------------------------
-async function hanldeMessageFromPeer(data: any) {
+async function hanldeMessageFromPeer(data: Data) {
   const { type, memberId: fromId } = data
   if (type === 'offer')
     await createAnswer(fromId, data.offer)
@@ -77,7 +78,7 @@ function peerListeners(memberId: string) {
       return
     CLIENT.emit(
       'MessageToPeer',
-      { type: 'candidate', candidate: event.candidate, memberId, roomID },
+      { type: 'candidate', candidate: event.candidate, memberId },
     )
   }
   localPeer.value!.oniceconnectionstatechange = () => {
@@ -93,7 +94,7 @@ async function createOffer(memberId: string) {
   openChannel() // 打开channel
   const offer = await localPeer.value!.createOffer()
   await localPeer.value!.setLocalDescription(offer)
-  CLIENT.emit('MessageToPeer', { type: 'offer', offer, memberId, roomID })
+  CLIENT.emit('MessageToPeer', { type: 'offer', offer, memberId })
 }
 
 async function createAnswer(memberId: string, offer: RTCSessionDescriptionInit) {
@@ -102,7 +103,7 @@ async function createAnswer(memberId: string, offer: RTCSessionDescriptionInit) 
   await localPeer.value!.setRemoteDescription(offer)
   const answer = await localPeer.value!.createAnswer()
   await localPeer.value!.setLocalDescription(answer)
-  CLIENT.emit('MessageToPeer', { type: 'answer', answer, memberId, roomID })
+  CLIENT.emit('MessageToPeer', { type: 'answer', answer, memberId })
 }
 
 async function addAnswer(answer: RTCSessionDescriptionInit) {
@@ -196,13 +197,13 @@ function showSide(type: 'member' | 'chat') {
 }
 // -----------------------------------------------------------
 
-function gotoHome() {
+function gotoHome(timeout = 1000) {
   const { open, close } = useLoading()
   open()
   setTimeout(() => {
     close()
     router.push('/')
-  }, 1000)
+  }, timeout)
 }
 
 function hangup() {
@@ -212,7 +213,7 @@ function hangup() {
     leaveChannel()
   else
     closeRoom()
-  gotoHome()
+  gotoHome(5000)
 }
 
 // check room --------------------------------------------------
@@ -235,11 +236,11 @@ async function leaveChannel() {
 async function localStreamReady() {
   initClientListener()
   await createPeerConnection()
-  window.addEventListener('beforeunload', leaveChannel)
+  // window.addEventListener('beforeunload', leaveChannel)
 }
 
 onUnmounted(() => {
-  window.removeEventListener('beforeunload', leaveChannel)
+  // window.removeEventListener('beforeunload', leaveChannel)
   localPeer.value?.close()
 })
 </script>

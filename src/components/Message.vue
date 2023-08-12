@@ -17,7 +17,7 @@ function onClose() {
     m="x-5 y-6"
     min-w="240px"
     shadow="md"
-    top="30px" left="50%"
+    top="20px" left="50%"
     absolute z-9999
     flex items-center justify-between
     rounded-1 p-2
@@ -25,14 +25,13 @@ function onClose() {
   >
     <!-- 消息类型图标，通过消息类型确定，text类型不配置图标 -->
     <div
-      class="i-ic:outline-info"
+      class="i-ic:outline-info  text-xl"
       :class="{
         'text-green-6': props.type === 'success',
         'text-red-6': props.type === 'error',
         'text-yellow-6': props.type === 'warning',
         'text-blue-6': props.type === 'info',
       }"
-      h="20px" w="20px"
     />
 
     <!-- 消息文本 -->
