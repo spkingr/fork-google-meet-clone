@@ -46,7 +46,7 @@ function copyLink(link: string) {
 
 // create meet--------------------------------------------------------
 async function createMeet() {
-  await loading()
+  await loading(2000)
   // 设置一个主持人标识
   userStore.modifyUser({ isHost: true })
   // 跳转到预览页面
@@ -100,7 +100,10 @@ onMounted(() => {
               <div i-simple-icons:googlemeet mr-3 />
               <span>CREATE NEW</span>
             </button>
-            <div v-if="show" ref="optionsRef" w="260px" border="1px solid gray-300" absolute mt-4 rounded-1 p="y-2 x-4">
+            <div
+              v-if="show" ref="optionsRef"
+              w="260px" border="1px solid gray-300" absolute mt-4 rounded-1 p="y-2 x-4"
+            >
               <div
                 v-for="(option, index) of createOptions" :key="index"
                 flex p-4 transition-300

@@ -7,7 +7,6 @@ import { useUserStore } from '~/store/useUser'
 import { createRoomApi } from '~/api/live'
 
 const userStore = useUserStore()
-
 const router = useRouter()
 
 // 拿到主持人标识
